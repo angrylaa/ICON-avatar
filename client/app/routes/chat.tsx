@@ -8,7 +8,7 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export default function Home() {
+export default function Chat() {
   return (
     <div className="flex h-screen">
       <div className="w-1/2 h-full justify-center items-center flex">
