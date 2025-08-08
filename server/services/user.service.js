@@ -30,3 +30,39 @@ export async function registerUser({ email, password, role }) {
     throw e;
   }
 }
+
+// Get all users (no password hashes)
+export async function getAllUsers() {
+  const all = await db.select({
+    id: users.id,
+    email: users.email,
+    role: users.role,
+    createdAt: users.createdAt,
+  }).from(users);
+  return all;
+}
+
+// Edit a user's data
+export async function editUser(id, { email, password, role }) {
+  const updates = {};
+
+  if (email) updates.email = email;
+  if (role) updates.role = role;
+  if (password) {
+    updates.passwordHash = await bcrypt.hash(password, 12);
+  }
+
+  if (Object.keys(updates).length === 0) {
+    throw new AppError(400, "No data provided to update");
+  }
+
+  const result = await db.update(users)
+    .set(updates)
+    .where(eq(users.id, id));
+
+  if (result[0]?.affectedRows === 0) {
+    throw new AppError(404, "User not found");
+  }
+
+  return { ok: true };
+}
