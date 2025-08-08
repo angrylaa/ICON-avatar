@@ -3,6 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useNavigate } from "react-router";
+import { useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -15,15 +17,18 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { loginUser } from "services/user";
 
 const formSchema = z.object({
-  email: z.string().min(2, {
-    message: "Email must be at least 2 characters.",
-  }),
-  password: z.string(),
+  email: z.string().email({ message: "Enter a valid email." }),
+  password: z.string().min(8, { message: "Min 8 characters." }),
 });
 
 export function LoginForm() {
+  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -32,11 +37,20 @@ export function LoginForm() {
     },
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setError(null);
+    setLoading(true);
+    try {
+      const { token } = await loginUser(values);
+      if (token) {
+        localStorage.setItem("token", token);
+      }
+      navigate("/questionaire");
+    } catch (e: any) {
+      setError(e?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -49,7 +63,7 @@ export function LoginForm() {
             render={({ field }) => (
               <FormItem className="mb-4">
                 <FormControl>
-                  <Input placeholder="Email..." {...field} />
+                  <Input placeholder="Email..." type="email" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -61,17 +75,19 @@ export function LoginForm() {
             render={({ field }) => (
               <FormItem className="mb-4">
                 <FormControl>
-                  <Input placeholder="Password..." {...field} />
+                  <Input placeholder="Password..." type="password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+          {error && <div className="text-red-600 text-sm">{error}</div>}
           <Button
             className="bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
             type="submit"
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </Button>
         </form>
         <div className="text-sm text-[#B4933F] hover:text-[#947627] hover:cursor-pointer">

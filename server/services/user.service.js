@@ -87,3 +87,17 @@ export async function editUser(id, { email, password, role }) {
 
   return { ok: true };
 }
+
+export async function getUserById(id) {
+  const rows = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+    })
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
+  return rows[0] || null;
+}

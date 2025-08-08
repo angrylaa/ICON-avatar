@@ -15,6 +15,6 @@
     "drizzle-kit": "^0.31.4"
   },
   "scripts": {
-    "start:dev": "drizzle-kit generate && drizzle-kit push && nodemon src/server.js"
+    "start:dev": "drizzle-kit generate && drizzle-kit push && nodemon index.js"
   }
 }
