@@ -31,14 +31,37 @@ export async function registerUser({ email, password, role }) {
   }
 }
 
+export async function loginWithEmailPassword(email, password) {
+  const rows = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+  const user = rows[0];
+  if (!user) throw new AppError(401, "Invalid email or password");
+
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) throw new AppError(401, "Invalid email or password");
+
+  // Strip sensitive fields
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    createdAt: user.createdAt,
+  };
+}
+
 // Get all users (no password hashes)
 export async function getAllUsers() {
-  const all = await db.select({
-    id: users.id,
-    email: users.email,
-    role: users.role,
-    createdAt: users.createdAt,
-  }).from(users);
+  const all = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+    })
+    .from(users);
   return all;
 }
 
@@ -56,9 +79,7 @@ export async function editUser(id, { email, password, role }) {
     throw new AppError(400, "No data provided to update");
   }
 
-  const result = await db.update(users)
-    .set(updates)
-    .where(eq(users.id, id));
+  const result = await db.update(users).set(updates).where(eq(users.id, id));
 
   if (result[0]?.affectedRows === 0) {
     throw new AppError(404, "User not found");

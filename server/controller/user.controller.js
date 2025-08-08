@@ -1,5 +1,9 @@
-import { validate, RegisterSchema } from "../utils/validate.js";
-import { registerUser } from "../services/user.service.js";
+import { validate, RegisterSchema, LoginSchema } from "../utils/validate.js";
+import {
+  registerUser,
+  loginWithEmailPassword,
+} from "../services/user.service.js";
+import { signAuthToken } from "../utils/jwt.js";
 
 export async function register(req, res, next) {
   try {
@@ -35,6 +39,29 @@ export async function updateUser(req, res, next) {
     });
 
     res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function login(req, res, next) {
+  try {
+    const { email, password } = validate(LoginSchema, req.body);
+    const user = await loginWithEmailPassword(email, password);
+
+    // Create JWT (contains minimal info)
+    const token = signAuthToken({ sub: user.id, role: user.role });
+
+    // Optional cookie (httpOnly)
+    res.cookie("auth", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7d
+      path: "/",
+    });
+
+    return res.json({ user, token }); // return token too if you want SPA to store it
   } catch (err) {
     next(err);
   }

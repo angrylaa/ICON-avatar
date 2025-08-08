@@ -17,18 +17,17 @@ import {
 import { Input } from "~/components/ui/input";
 
 const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+  email: z.string().min(2, {
+    message: "Email must be at least 2 characters.",
   }),
   password: z.string(),
 });
 
 export function LoginForm() {
-  // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -46,11 +45,11 @@ export function LoginForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name="username"
+            name="email"
             render={({ field }) => (
               <FormItem className="mb-4">
                 <FormControl>
-                  <Input placeholder="Username..." {...field} />
+                  <Input placeholder="Email..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
