@@ -101,3 +101,12 @@ export async function getUserById(id) {
     .limit(1);
   return rows[0] || null;
 }
+
+export async function deleteUser(id) {
+  const result = await db.delete(users).where(eq(users.id, id));
+  // drizzle-mysql2 returns an array with OkPacket as first element
+  if (Array.isArray(result) && result[0]?.affectedRows === 0) {
+    throw new AppError(404, "User not found");
+  }
+  return { ok: true };
+}

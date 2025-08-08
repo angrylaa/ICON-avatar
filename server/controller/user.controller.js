@@ -83,3 +83,15 @@ export async function me(req, res, next) {
     next(err);
   }
 }
+
+export async function deleteUser(req, res, next) {
+  try {
+    const { id } = req.params;
+    if (isNaN(Number(id))) throw new AppError(400, "Invalid user ID");
+    const { deleteUser: deleteUserService } = await import("../services/user.service.js");
+    const result = await deleteUserService(Number(id));
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
