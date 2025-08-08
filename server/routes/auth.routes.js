@@ -1,16 +1,15 @@
 import { Router } from "express";
 import {
   register,
-  getUsers,
-  updateUser,
   login,
+  me,
 } from "../controller/user.controller.js";
+import { requireAuth } from "../utils/admin.js";
 
 const router = Router();
 
 router.post("/register", register);
-router.get("/", getUsers);
-router.put("/:id", updateUser);
 router.post("/login", login);
+router.get("/me", requireAuth, me);
 
 export default router;

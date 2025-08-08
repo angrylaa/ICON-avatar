@@ -2,8 +2,12 @@ import { validate, RegisterSchema, LoginSchema } from "../utils/validate.js";
 import {
   registerUser,
   loginWithEmailPassword,
+  getAllUsers,
+  editUser as editUserService,
+  getUserById,
 } from "../services/user.service.js";
 import { signAuthToken } from "../utils/jwt.js";
+import { AppError } from "../utils/errors.js";
 
 export async function register(req, res, next) {
   try {
@@ -16,9 +20,9 @@ export async function register(req, res, next) {
 }
 
 // GET /users
-export async function getUsers(req, res, next) {
+export async function getUsers(_req, res, next) {
   try {
-    const users = await userService.getAllUsers();
+    const users = await getAllUsers();
     res.json({ users });
   } catch (err) {
     next(err);
@@ -32,7 +36,7 @@ export async function updateUser(req, res, next) {
     if (isNaN(Number(id))) throw new AppError(400, "Invalid user ID");
 
     const { email, password, role } = req.body;
-    const result = await userService.editUser(Number(id), {
+    const result = await editUserService(Number(id), {
       email,
       password,
       role,
@@ -62,6 +66,19 @@ export async function login(req, res, next) {
     });
 
     return res.json({ user, token }); // return token too if you want SPA to store it
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function me(req, res, next) {
+  try {
+    // req.user is set by requireAuth middleware
+    const auth = req.user; // { sub, role }
+    if (!auth?.sub) return res.status(401).json({ error: "Unauthorized" });
+    const user = await getUserById(auth.sub);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json({ user });
   } catch (err) {
     next(err);
   }

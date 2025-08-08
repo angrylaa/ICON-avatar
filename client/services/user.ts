@@ -57,6 +57,11 @@ export async function loginUser(input: {
   });
 }
 
+export async function getMe(): Promise<{ user: User }> {
+  const token = localStorage.getItem("token") || undefined;
+  return request<{ user: User }>("/auth/me", { method: "GET" }, token);
+}
+
 /** Admin: get all users */
 export async function getAllUsers(token?: string): Promise<User[]> {
   const { users } = await request<{ users: User[] }>(

@@ -3,6 +3,7 @@ import type { Route } from "./+types/home";
 import { MoveRight } from "lucide-react";
 import { MoveLeft } from "lucide-react";
 import { useState } from "react";
+import { useRequireAuth } from "~/lib/useRequireAuth";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -12,6 +13,7 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Questionaire() {
+  useRequireAuth();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState("next");
 
