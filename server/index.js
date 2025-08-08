@@ -1,20 +1,14 @@
-const express = require("express");
-const app = express();
+import express from "express";
+import authRoutes from "./routes/auth.routes.js";
+import { errorMiddleware } from "./utils/errors.js";
 
-// Middleware
+const app = express();
 app.use(express.json());
 
-// Routes
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
+app.use("/auth", authRoutes);
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
-app.get("/", (req, res) => {
-  res.send("Hello from Express 👋");
-});
+app.use(errorMiddleware);
 
-// Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running http://localhost:${PORT}`));
