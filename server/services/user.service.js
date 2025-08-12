@@ -110,3 +110,34 @@ export async function deleteUser(id) {
   }
   return { ok: true };
 }
+
+// New: Admin action - update only the role
+export async function updateUserRole(id, role) {
+  if (!role || (role !== "user" && role !== "admin")) {
+    throw new AppError(400, "Invalid role");
+  }
+  const result = await db
+    .update(users)
+    .set({ role })
+    .where(eq(users.id, id));
+  if (result[0]?.affectedRows === 0) {
+    throw new AppError(404, "User not found");
+  }
+  return { ok: true };
+}
+
+// New: Admin action - reset password
+export async function resetUserPassword(id, newPassword) {
+  if (!newPassword || newPassword.length < 8) {
+    throw new AppError(400, "Password must be at least 8 characters");
+  }
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  const result = await db
+    .update(users)
+    .set({ passwordHash })
+    .where(eq(users.id, id));
+  if (result[0]?.affectedRows === 0) {
+    throw new AppError(404, "User not found");
+  }
+  return { ok: true };
+}

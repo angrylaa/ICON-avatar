@@ -41,11 +41,16 @@ export function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      const { token } = await loginUser(values);
+      const { token, user } = await loginUser(values);
       if (token) {
         localStorage.setItem("token", token);
       }
-      navigate("/questionaire");
+      // Redirect based on role
+      if (user?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/questionaire");
+      }
     } catch (e: any) {
       setError(e?.message || "Login failed");
     } finally {
