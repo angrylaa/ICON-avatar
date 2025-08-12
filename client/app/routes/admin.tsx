@@ -23,6 +23,13 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Admin" }, { name: "description", content: "Admin Panel" }];
@@ -30,7 +37,9 @@ export function meta({}: Route.MetaArgs) {
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z
+    .string()
+    .min(8, { message: "The pasword must have at least 8 characters" }),
   role: z.union([z.literal("user"), z.literal("admin")]),
 });
 
@@ -39,7 +48,10 @@ export default function Admin() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("token") || undefined
+      : undefined;
 
   useEffect(() => {
     if (!ok) return;
@@ -88,67 +100,91 @@ export default function Admin() {
   if (!ok) return null;
 
   return (
-    <div className="container mx-auto py-10 space-y-6">
-      <div className="rounded-md border p-4">
+    <div className="space-y-6 h-screen bg-[#FFF6DE] justify-center overflow-hidden">
+      <div className="rounded-md mx-auto max-w-300 p-12">
         <h2 className="mb-3 text-lg font-semibold">Create User</h2>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-2">
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="user@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-1">
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-1">
-                  <FormLabel>Role</FormLabel>
-                  <FormControl>
-                    <select
-                      className="h-9 w-full rounded-md border bg-background px-3 text-sm"
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value as Role)}
+        <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-col gap-4"
+            >
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="bg-white border-[#CBB06A]"
+                        placeholder="user@example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-1">
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="bg-white border-[#CBB06A]"
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
                     >
-                      <option value="user">user</option>
-                      <option value="admin">admin</option>
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="sm:col-span-4 flex justify-end">
-              <Button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create"}
-              </Button>
-            </div>
-          </form>
-        </Form>
+                      <FormControl>
+                        <SelectTrigger className="bg-white border-[#CBB06A]">
+                          <SelectValue placeholder="Select the user's role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="user">User</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="sm:col-span-4 flex justify-end">
+                <Button
+                  type="submit"
+                  className="bg-[#CBB06A]"
+                  disabled={loading}
+                >
+                  {loading ? "Creating..." : "Create"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+        <h2 className="mt-12 mb-3 text-lg font-semibold">View Userbase</h2>
+        <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
+          <DataTable columns={columns} data={users} />
+        </div>
       </div>
-
-      <DataTable columns={columns} data={users} />
     </div>
   );
 }
