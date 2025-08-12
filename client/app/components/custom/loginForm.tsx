@@ -21,7 +21,7 @@ import { loginUser } from "services/user";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Enter a valid email." }),
-  password: z.string().min(8, { message: "Min 8 characters." }),
+  password: z.string(),
 });
 
 export function LoginForm() {

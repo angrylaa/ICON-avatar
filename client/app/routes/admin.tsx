@@ -7,7 +7,6 @@ import {
   createUser as createUserApi,
   deleteUserApi,
   getAllUsers,
-  logoutUser,
   type Role,
   type User,
   updateUserApi,
@@ -33,6 +32,13 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { useNavigate } from "react-router";
+import { Navbar } from "../components/custom/Navbar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { DataTable as DanielTable } from "~/components/daniel-data-table/table";
+import {
+  makeKnowledgeColumns,
+  type knowledgeBase,
+} from "~/components/daniel-data-table/columns";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Admin" }, { name: "description", content: "Admin Panel" }];
@@ -50,6 +56,9 @@ export default function Admin() {
   const ok = useRequireAdmin();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+  const [danielKnowledge, setDanielKnowledge] = useState<knowledgeBase[]>([]);
+  const [tylerKnowledge, setTylerKnowledge] = useState<knowledgeBase[]>([]);
+  const [jennyKnowledge, setJennyKnowledge] = useState<knowledgeBase[]>([]);
   const navigate = useNavigate();
 
   const token =
@@ -68,6 +77,55 @@ export default function Admin() {
       }
     })();
   }, [ok, token]);
+
+  useEffect(() => {
+    if (!ok) return;
+    (async () => {
+      try {
+        const token = localStorage.getItem("token");
+        // Daniel
+        const danielRes = await fetch(
+          `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/danielknowledge`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }
+        );
+        const danielResult = await danielRes.json();
+        setDanielKnowledge(danielResult.data || []);
+        // Tyler
+        const tylerRes = await fetch(
+          `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/tylerknowledge`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }
+        );
+        const tylerResult = await tylerRes.json();
+        setTylerKnowledge(tylerResult.data || []);
+        // Jenny
+        const jennyRes = await fetch(
+          `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/jennyknowledge`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }
+        );
+        const jennyResult = await jennyRes.json();
+        setJennyKnowledge(jennyResult.data || []);
+      } catch (e) {
+        setDanielKnowledge([]);
+        setTylerKnowledge([]);
+        setJennyKnowledge([]);
+      }
+    })();
+  }, [ok]);
 
   const handleDelete = useCallback(
     async (user: User) => {
@@ -107,16 +165,12 @@ export default function Admin() {
     [token]
   );
 
-  const handleLogout = async () => {
-    await logoutUser();
-    localStorage.removeItem("token");
-    navigate("/", { replace: true });
-  };
-
   const columns = useMemo(
     () => makeUserColumns(handleDelete, handleChangeRole, handleResetPassword),
     [handleDelete, handleChangeRole, handleResetPassword]
   );
+
+  const knowledgeBaseColumns = useMemo(() => makeKnowledgeColumns(), []);
 
   const form = useForm<z.infer<typeof CreateUserSchema>>({
     resolver: zodResolver(CreateUserSchema),
@@ -139,99 +193,124 @@ export default function Admin() {
   if (!ok) return null;
 
   return (
-    <div className="space-y-6 h-screen bg-[#FFF6DE] justify-center overflow-hidden">
-      <div className="rounded-md mx-auto max-w-300 p-12">
-        <div className="flex justify-end mb-4">
-          <Button
-            className="bg-[#B4933F] hover:bg-[#947627]"
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
-        </div>
-        <h2 className="mb-3 text-lg font-semibold">Create User</h2>
-        <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="flex flex-col gap-4"
-            >
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="sm:col-span-2">
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="bg-white border-[#CBB06A]"
-                        placeholder="user@example.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="sm:col-span-1">
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="bg-white border-[#CBB06A]"
-                        type="password"
-                        placeholder="••••••••"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+    <>
+      <Navbar />
+      <div className="space-y-6 h-screen bg-[#FFF6DE] justify-center overflow-hidden">
+        <div className="rounded-md mx-auto max-w-300 p-12">
+          <h2 className="mb-3 text-lg font-semibold">Create User</h2>
+          <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="flex flex-col gap-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <SelectTrigger className="bg-white border-[#CBB06A]">
-                          <SelectValue placeholder="Select the user's role" />
-                        </SelectTrigger>
+                        <Input
+                          className="bg-white border-[#CBB06A]"
+                          placeholder="user@example.com"
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="user">User</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="sm:col-span-4 flex justify-end">
-                <Button
-                  type="submit"
-                  className="bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
-                  disabled={loading}
-                >
-                  {loading ? "Creating..." : "Create"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
-        <h2 className="mt-12 mb-3 text-lg font-semibold">View Userbase</h2>
-        <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
-          <DataTable columns={columns} data={users} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-1">
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="bg-white border-[#CBB06A]"
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="bg-white border-[#CBB06A]">
+                            <SelectValue placeholder="Select the user's role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="user">User</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="sm:col-span-4 flex justify-end">
+                  <Button
+                    type="submit"
+                    className="bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
+                    disabled={loading}
+                  >
+                    {loading ? "Creating..." : "Create"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
+          <h2 className="mt-12 mb-3 text-lg font-semibold">View Userbase</h2>
+          <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
+            <DataTable columns={columns} data={users} />
+          </div>
+          <h2 className="mt-12 mb-3 text-lg font-semibold">
+            Update Knowledgebase
+          </h2>
+          <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
+            <Tabs defaultValue="account" className="w-full">
+              <TabsList>
+                <TabsTrigger value="tyler">Tyler</TabsTrigger>
+                <TabsTrigger value="daniel">Daniel</TabsTrigger>
+                <TabsTrigger value="jenny">Jenny</TabsTrigger>
+              </TabsList>
+              <TabsContent value="tyler">
+                <DanielTable
+                  columns={knowledgeBaseColumns}
+                  data={tylerKnowledge}
+                />
+              </TabsContent>
+              <TabsContent value="daniel">
+                <DanielTable
+                  columns={knowledgeBaseColumns}
+                  data={danielKnowledge}
+                />
+              </TabsContent>
+              <TabsContent value="jenny">
+                <DanielTable
+                  columns={knowledgeBaseColumns}
+                  data={jennyKnowledge}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
