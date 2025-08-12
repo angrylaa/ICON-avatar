@@ -1,5 +1,7 @@
 import type { Route } from "./+types/home";
 import { LoginForm } from "~/components/custom/loginForm";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,6 +11,28 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Try to get user role from localStorage if available
+      const userRaw = localStorage.getItem("user");
+      let role = null;
+      if (userRaw) {
+        try {
+          const user = JSON.parse(userRaw);
+          role = user.role;
+        } catch {}
+      }
+      // Fallback: if no user info, default to questionaire
+      if (role === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/questionaire", { replace: true });
+      }
+    }
+  }, [navigate]);
+
   return (
     <div className="flex h-screen">
       <div className="w-1/2 h-full justify-center items-center flex">

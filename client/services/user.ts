@@ -72,10 +72,36 @@ export async function getAllUsers(token?: string): Promise<User[]> {
   return users;
 }
 
-export async function deleteUserApi(id: number, token?: string): Promise<{ ok: true }>{
+export async function deleteUserApi(
+  id: number,
+  token?: string
+): Promise<{ ok: true }> {
   return request<{ ok: true }>(`/users/${id}`, { method: "DELETE" }, token);
 }
 
-export async function createUser(input: { email: string; password: string; role?: Role }): Promise<{ user: User }>{
+export async function createUser(input: {
+  email: string;
+  password: string;
+  role?: Role;
+}): Promise<{ user: User }> {
   return registerUser(input);
+}
+
+export async function updateUserApi(
+  id: number,
+  input: { email?: string; password?: string; role?: Role },
+  token?: string
+): Promise<{ ok: true }> {
+  return request<{ ok: true }>(
+    `/users/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(input),
+    },
+    token
+  );
+}
+
+export async function logoutUser(): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/auth/logout", { method: "POST" });
 }

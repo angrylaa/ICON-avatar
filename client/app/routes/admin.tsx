@@ -7,8 +7,10 @@ import {
   createUser as createUserApi,
   deleteUserApi,
   getAllUsers,
+  logoutUser,
   type Role,
   type User,
+  updateUserApi,
 } from "services/user";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -30,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { useNavigate } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Admin" }, { name: "description", content: "Admin Panel" }];
@@ -47,6 +50,7 @@ export default function Admin() {
   const ok = useRequireAdmin();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const token =
     typeof window !== "undefined"
@@ -77,7 +81,42 @@ export default function Admin() {
     [token]
   );
 
-  const columns = useMemo(() => makeUserColumns(handleDelete), [handleDelete]);
+  const handleChangeRole = useCallback(
+    async (user: User) => {
+      try {
+        const newRole = user.role === "admin" ? "user" : "admin";
+        await updateUserApi(user.id, { role: newRole }, token);
+        setUsers((prev) =>
+          prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
+        );
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [token]
+  );
+
+  const handleResetPassword = useCallback(
+    async (user: User, newPassword: string) => {
+      try {
+        await updateUserApi(user.id, { password: newPassword }, token);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [token]
+  );
+
+  const handleLogout = async () => {
+    await logoutUser();
+    localStorage.removeItem("token");
+    navigate("/", { replace: true });
+  };
+
+  const columns = useMemo(
+    () => makeUserColumns(handleDelete, handleChangeRole, handleResetPassword),
+    [handleDelete, handleChangeRole, handleResetPassword]
+  );
 
   const form = useForm<z.infer<typeof CreateUserSchema>>({
     resolver: zodResolver(CreateUserSchema),
@@ -102,6 +141,14 @@ export default function Admin() {
   return (
     <div className="space-y-6 h-screen bg-[#FFF6DE] justify-center overflow-hidden">
       <div className="rounded-md mx-auto max-w-300 p-12">
+        <div className="flex justify-end mb-4">
+          <Button
+            className="bg-[#B4933F] hover:bg-[#947627]"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </div>
         <h2 className="mb-3 text-lg font-semibold">Create User</h2>
         <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
           <Form {...form}>
@@ -171,7 +218,7 @@ export default function Admin() {
               <div className="sm:col-span-4 flex justify-end">
                 <Button
                   type="submit"
-                  className="bg-[#CBB06A]"
+                  className="bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
                   disabled={loading}
                 >
                   {loading ? "Creating..." : "Create"}

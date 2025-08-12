@@ -24,9 +24,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { Input } from "../ui/input";
 
 export function makeUserColumns(
-  onDelete: (user: User) => void
+  onDelete: (user: User) => void,
+  onChangeRole: (user: User) => void,
+  onResetPassword: (user: User, newPassword: string) => void
 ): ColumnDef<User>[] {
   return [
     {
@@ -40,11 +43,11 @@ export function makeUserColumns(
         <Badge
           className={
             row.original.role === "user"
-              ? "w-1/2 bg-[#CBB06A]"
-              : "w-1/2 bg-[#A79053]"
+              ? "w-1/2 bg-[#CBB06A] py-1"
+              : "w-1/2 bg-[#A79053] py-1"
           }
         >
-          {row.original.role}
+          {row.original.role[0].toUpperCase() + row.original.role.slice(1)}
         </Badge>
       ),
     },
@@ -86,7 +89,70 @@ export function makeUserColumns(
                 </AlertDialogContent>
               </AlertDialog>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Reset User Password</DropdownMenuItem>
+              <AlertDialog>
+                <AlertDialogTrigger className="w-full text-left hover:cursor-pointer p-2 text-sm rounded-lg hover:bg-accent ">
+                  Change Role
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Change User Role</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Change role for "{user.email}" from{" "}
+                      <b>
+                        {row.original.role[0].toUpperCase() +
+                          row.original.role.slice(1)}
+                      </b>{" "}
+                      to <b>{user.role === "admin" ? "User" : "Admin"}</b>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="text-white bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
+                      onClick={() => onChangeRole(user)}
+                    >
+                      {user.role === "admin" ? "Set as User" : "Set as Admin"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <AlertDialog>
+                <AlertDialogTrigger className="w-full text-left hover:cursor-pointer p-2 text-sm rounded-lg hover:bg-accent ">
+                  Reset Password
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset Password</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Enter a new password for "{user.email}".
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <Input
+                    type="password"
+                    placeholder="New password"
+                    id={`reset-pw-${user.id}`}
+                  />
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="text-white bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
+                      onClick={() => {
+                        const input = document.getElementById(
+                          `reset-pw-${user.id}`
+                        );
+                        if (input && "value" in input)
+                          onResetPassword(
+                            user,
+                            (input as HTMLInputElement).value
+                          );
+                      }}
+                    >
+                      Reset
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </DropdownMenuContent>
           </DropdownMenu>
         );
