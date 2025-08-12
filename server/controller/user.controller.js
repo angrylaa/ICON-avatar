@@ -95,3 +95,33 @@ export async function deleteUser(req, res, next) {
     next(err);
   }
 }
+
+// New: PUT /users/:id/role
+export async function updateUserRole(req, res, next) {
+  try {
+    const { id } = req.params;
+    if (isNaN(Number(id))) throw new AppError(400, "Invalid user ID");
+    const { validate, UpdateRoleSchema } = await import("../utils/validate.js");
+    const { updateUserRole: updateUserRoleService } = await import("../services/user.service.js");
+    const { role } = validate(UpdateRoleSchema, req.body);
+    const result = await updateUserRoleService(Number(id), role);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+// New: PUT /users/:id/password
+export async function resetUserPassword(req, res, next) {
+  try {
+    const { id } = req.params;
+    if (isNaN(Number(id))) throw new AppError(400, "Invalid user ID");
+    const { validate, ResetPasswordSchema } = await import("../utils/validate.js");
+    const { resetUserPassword: resetUserPasswordService } = await import("../services/user.service.js");
+    const { password } = validate(ResetPasswordSchema, req.body);
+    const result = await resetUserPasswordService(Number(id), password);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}

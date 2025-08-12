@@ -79,3 +79,27 @@ export async function deleteUserApi(id: number, token?: string): Promise<{ ok: t
 export async function createUser(input: { email: string; password: string; role?: Role }): Promise<{ user: User }>{
   return registerUser(input);
 }
+
+// New: Admin - update a user's role
+export async function updateUserRoleApi(
+  id: number,
+  role: Role,
+  token?: string
+): Promise<{ ok: true }>{
+  return request<{ ok: true }>(`/users/${id}/role`, {
+    method: "PUT",
+    body: JSON.stringify({ role }),
+  }, token);
+}
+
+// New: Admin - reset a user's password
+export async function resetUserPasswordApi(
+  id: number,
+  password: string,
+  token?: string
+): Promise<{ ok: true }>{
+  return request<{ ok: true }>(`/users/${id}/password`, {
+    method: "PUT",
+    body: JSON.stringify({ password }),
+  }, token);
+}
