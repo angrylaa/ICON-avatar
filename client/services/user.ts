@@ -10,6 +10,12 @@ export type User = {
 
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+function getToken(): string | undefined {
+  const t =
+    typeof window !== "undefined" ? localStorage.getItem("token") : undefined;
+  return t === null ? undefined : t;
+}
+
 // Optional: pass a token if you’re doing bearer auth.
 // If you’re using httpOnly cookies instead, remove the Authorization header
 // and uncomment `credentials: "include"` below.
@@ -18,11 +24,12 @@ async function request<T>(
   options: RequestInit = {},
   token?: string
 ): Promise<T> {
+  const authToken = token ?? getToken();
   const res = await fetch(`${API}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...(options.headers || {}),
     },
     // credentials: "include",
@@ -58,8 +65,7 @@ export async function loginUser(input: {
 }
 
 export async function getMe(): Promise<{ user: User }> {
-  const token = localStorage.getItem("token") || undefined;
-  return request<{ user: User }>("/auth/me", { method: "GET" }, token);
+  return request<{ user: User }>("/auth/me", { method: "GET" });
 }
 
 /** Admin: get all users */

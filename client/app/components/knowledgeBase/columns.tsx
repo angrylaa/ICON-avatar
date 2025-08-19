@@ -18,14 +18,14 @@ import { MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { deleteKnowledge } from "services/knowledge";
 import { Input } from "../ui/input";
 
 export type knowledgeBase = {
+  table: string;
   id: number;
   title: string;
   body: string;
@@ -72,6 +72,7 @@ export function makeKnowledgeColumns(): ColumnDef<knowledgeBase>[] {
     {
       id: "actions",
       cell: ({ row }) => {
+        console.log(row.original);
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -82,6 +83,30 @@ export function makeKnowledgeColumns(): ColumnDef<knowledgeBase>[] {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <AlertDialog>
+                <AlertDialogTrigger className="w-full text-left hover:cursor-pointer p-2 text-sm rounded-lg hover:bg-accent ">
+                  Delete
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete knowledge?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete the knowledge selected.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="text-white"
+                      onClick={() =>
+                        deleteKnowledge(row.original.table, row.original.id)
+                      }
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </DropdownMenuContent>
           </DropdownMenu>
         );

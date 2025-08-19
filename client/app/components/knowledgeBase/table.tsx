@@ -11,16 +11,15 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "../ui/alert-dialog";
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
@@ -32,6 +31,17 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import MultiSelect from "~/components/ui/multi-select";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "../ui/form";
+import { Controller } from "react-hook-form";
+import { createKnowledge } from "services/knowledge";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -43,6 +53,14 @@ const entrySchema = z.object({
   body: z.string().min(1, "Body is required"),
   categories: z.string().min(1, "At least one category required"),
 });
+
+const categories = [
+  { value: "Resources", label: "Resources" },
+  { value: "General Knowledge", label: "General Knowledge" },
+  { value: "Advice", label: "Advice" },
+  { value: "Career", label: "Career" },
+  { value: "School", label: "School" },
+];
 
 export function DataTable<TData, TValue>({
   columns,
@@ -130,74 +148,146 @@ export function CreateKnowledgeEntryDialog({
     setError(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/${table}`,
+      const res = await createKnowledge(
+        table,
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          title: values.title,
+          body: values.body,
+          tags: {
+            categories: values.categories.split(",").map((c) => c.trim()),
           },
-          body: JSON.stringify({
-            title: values.title,
-            body: values.body,
-            tags: {
-              categories: values.categories.split(",").map((c) => c.trim()),
-            },
-          }),
-        }
+        },
+        token ?? undefined
       );
+
       if (!res.ok) throw new Error("Failed to create entry");
-      setOpen(false);
+
       form.reset();
+      setOpen(false);
       onCreated();
     } catch (e: any) {
       setError(e?.message || "Error creating entry");
+      // Do NOT reset or close dialog if error
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <Button
           className="bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer mt-4 mb-2"
           type="button"
         >
           Create New Entry
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Create Knowledge Entry</AlertDialogTitle>
-          <AlertDialogDescription>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Knowledge Entry</DialogTitle>
+          <DialogDescription>
             Fill out the fields below to add a new entry.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-4"
-        >
-          <Input {...form.register("title")} placeholder="Title" />
-          <Input {...form.register("body")} placeholder="Body" />
-          <Input
-            {...form.register("categories")}
-            placeholder="Categories (comma separated)"
-          />
-          {error && <div className="text-red-600 text-sm">{error}</div>}
-          <AlertDialogFooter>
-            <AlertDialogCancel type="button">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              type="submit"
-              disabled={loading}
-              className="bg-[#B4933F] hover:bg-[#947627]"
-            >
-              {loading ? "Creating..." : "Create"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </form>
-      </AlertDialogContent>
-    </AlertDialog>
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Title" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="body"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Body</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Body" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="categories"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categories</FormLabel>
+                  <FormControl>
+                    <Controller
+                      control={form.control}
+                      name="categories"
+                      render={({ field: controllerField }) => {
+                        // Map string values to Option objects
+                        const selectedOptions = controllerField.value
+                          ? controllerField.value
+                              .split(",")
+                              .map((val: string) =>
+                                categories.find((opt) => opt.value === val)
+                              )
+                              .filter(
+                                (
+                                  opt
+                                ): opt is { value: string; label: string } =>
+                                  !!opt
+                              )
+                          : [];
+                        return (
+                          <MultiSelect
+                            defaultOptions={categories}
+                            value={selectedOptions}
+                            onChange={(opts: any[]) => {
+                              controllerField.onChange(
+                                opts.map((opt: any) => opt.value).join(",")
+                              );
+                            }}
+                            placeholder="Select a category..."
+                            emptyIndicator={
+                              <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                                no results found.
+                              </p>
+                            }
+                          />
+                        );
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {error && <div className="text-red-600 text-sm">{error}</div>}
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-[#B4933F] hover:bg-[#947627] text-xs"
+              >
+                {loading ? "Creating..." : "Create"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }

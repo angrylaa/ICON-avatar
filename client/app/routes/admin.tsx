@@ -40,6 +40,8 @@ import {
   type knowledgeBase,
 } from "~/components/knowledgeBase/columns";
 import { CreateKnowledgeEntryDialog } from "../components/knowledgeBase/table";
+import { getKnowledge } from "services/knowledge";
+import { toast } from "sonner";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Admin" }, { name: "description", content: "Admin Panel" }];
@@ -62,61 +64,28 @@ export default function Admin() {
   const [jennyKnowledge, setJennyKnowledge] = useState<knowledgeBase[]>([]);
   const navigate = useNavigate();
 
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("token") || undefined
-      : undefined;
-
   useEffect(() => {
     (async () => {
       try {
-        const list = await getAllUsers(token);
+        const list = await getAllUsers(); // token is now handled in the service
         setUsers(list);
       } catch (e) {
         console.error(e);
       }
     })();
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     (async () => {
       try {
-        const token = localStorage.getItem("token");
         // Daniel
-        const danielRes = await fetch(
-          `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/danielknowledge`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          }
-        );
-        const danielResult = await danielRes.json();
+        const danielResult = await getKnowledge("danielknowledge");
         setDanielKnowledge(danielResult.data || []);
         // Tyler
-        const tylerRes = await fetch(
-          `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/tylerknowledge`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          }
-        );
-        const tylerResult = await tylerRes.json();
+        const tylerResult = await getKnowledge("tylerknowledge");
         setTylerKnowledge(tylerResult.data || []);
         // Jenny
-        const jennyRes = await fetch(
-          `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/jennyknowledge`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          }
-        );
-        const jennyResult = await jennyRes.json();
+        const jennyResult = await getKnowledge("jennyknowledge");
         setJennyKnowledge(jennyResult.data || []);
       } catch (e) {
         setDanielKnowledge([]);
@@ -126,42 +95,42 @@ export default function Admin() {
     })();
   }, []);
 
-  const handleDelete = useCallback(
-    async (user: User) => {
-      try {
-        await deleteUserApi(user.id, token);
-        setUsers((prev) => prev.filter((u) => u.id !== user.id));
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    [token]
-  );
+  const handleDelete = useCallback(async (user: User) => {
+    try {
+      await deleteUserApi(user.id);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      toast.success("User has been deleted.");
+    } catch (e) {
+      toast.error("Failed to delete user.");
+      console.error(e);
+    }
+  }, []);
 
-  const handleChangeRole = useCallback(
-    async (user: User) => {
-      try {
-        const newRole = user.role === "admin" ? "user" : "admin";
-        await updateUserApi(user.id, { role: newRole }, token);
-        setUsers((prev) =>
-          prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
-        );
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    [token]
-  );
+  const handleChangeRole = useCallback(async (user: User) => {
+    try {
+      const newRole = user.role === "admin" ? "user" : "admin";
+      await updateUserApi(user.id, { role: newRole });
+      setUsers((prev) =>
+        prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
+      );
+      toast.success(`User role changed to ${newRole}.`);
+    } catch (e) {
+      toast.error("Failed to change user role.");
+      console.error(e);
+    }
+  }, []);
 
   const handleResetPassword = useCallback(
     async (user: User, newPassword: string) => {
       try {
-        await updateUserApi(user.id, { password: newPassword }, token);
+        await updateUserApi(user.id, { password: newPassword });
+        toast.success("Password has been reset.");
       } catch (e) {
+        toast.error("Failed to reset password.");
         console.error(e);
       }
     },
-    [token]
+    []
   );
 
   const columns = useMemo(
@@ -182,7 +151,9 @@ export default function Admin() {
       const { user } = await createUserApi(values);
       setUsers((prev) => [user, ...prev]);
       form.reset({ email: "", password: "", role: "user" });
+      toast.success("User has been created.");
     } catch (e) {
+      toast.error("Failed to create user.");
       console.error(e);
     } finally {
       setLoading(false);
@@ -289,24 +260,9 @@ export default function Admin() {
               <TabsContent value="tyler">
                 <CreateKnowledgeEntryDialog
                   table="tylerknowledge"
-                  onCreated={() => {
-                    // refetch tylerKnowledge
-                    (async () => {
-                      const token = localStorage.getItem("token");
-                      const tylerRes = await fetch(
-                        `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/tylerknowledge`,
-                        {
-                          headers: {
-                            "Content-Type": "application/json",
-                            ...(token
-                              ? { Authorization: `Bearer ${token}` }
-                              : {}),
-                          },
-                        }
-                      );
-                      const tylerResult = await tylerRes.json();
-                      setTylerKnowledge(tylerResult.data || []);
-                    })();
+                  onCreated={async () => {
+                    const tylerResult = await getKnowledge("tylerknowledge");
+                    setTylerKnowledge(tylerResult.data || []);
                   }}
                 />
                 <KnowledgeTable
@@ -317,24 +273,9 @@ export default function Admin() {
               <TabsContent value="daniel">
                 <CreateKnowledgeEntryDialog
                   table="danielknowledge"
-                  onCreated={() => {
-                    // refetch danielKnowledge
-                    (async () => {
-                      const token = localStorage.getItem("token");
-                      const danielRes = await fetch(
-                        `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/danielknowledge`,
-                        {
-                          headers: {
-                            "Content-Type": "application/json",
-                            ...(token
-                              ? { Authorization: `Bearer ${token}` }
-                              : {}),
-                          },
-                        }
-                      );
-                      const danielResult = await danielRes.json();
-                      setDanielKnowledge(danielResult.data || []);
-                    })();
+                  onCreated={async () => {
+                    const danielResult = await getKnowledge("danielknowledge");
+                    setDanielKnowledge(danielResult.data || []);
                   }}
                 />
                 <KnowledgeTable
@@ -345,24 +286,9 @@ export default function Admin() {
               <TabsContent value="jenny">
                 <CreateKnowledgeEntryDialog
                   table="jennyknowledge"
-                  onCreated={() => {
-                    // refetch jennyKnowledge
-                    (async () => {
-                      const token = localStorage.getItem("token");
-                      const jennyRes = await fetch(
-                        `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/jennyknowledge`,
-                        {
-                          headers: {
-                            "Content-Type": "application/json",
-                            ...(token
-                              ? { Authorization: `Bearer ${token}` }
-                              : {}),
-                          },
-                        }
-                      );
-                      const jennyResult = await jennyRes.json();
-                      setJennyKnowledge(jennyResult.data || []);
-                    })();
+                  onCreated={async () => {
+                    const jennyResult = await getKnowledge("jennyknowledge");
+                    setJennyKnowledge(jennyResult.data || []);
                   }}
                 />
                 <KnowledgeTable

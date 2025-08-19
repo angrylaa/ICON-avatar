@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { logoutUser } from "services/user";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
+import { Toaster } from "sonner";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -25,38 +26,41 @@ export function Navbar() {
   };
 
   return (
-    <nav className="w-full flex items-center justify-between px-8 py-4 bg-[#CBB06A] shadow-md">
-      <div className="flex items-center gap-6">
-        {role === "admin" ? (
-          <>
-            <Button
-              className="bg-[#B4933F] hover:bg-[#947627]"
-              onClick={() => navigate("/admin")}
-            >
-              Admin Panel
-            </Button>
+    <>
+      <nav className="w-full flex items-center justify-between px-8 py-4 bg-[#CBB06A] shadow-md">
+        <div className="flex items-center gap-6">
+          {role === "admin" ? (
+            <>
+              <Button
+                className="bg-[#B4933F] hover:bg-[#947627]"
+                onClick={() => navigate("/admin")}
+              >
+                Admin Panel
+              </Button>
+              <Button
+                className="bg-[#B4933F] hover:bg-[#947627]"
+                onClick={() => navigate("/questionaire")}
+              >
+                Questionaire
+              </Button>
+            </>
+          ) : (
             <Button
               className="bg-[#B4933F] hover:bg-[#947627]"
               onClick={() => navigate("/questionaire")}
             >
               Questionaire
             </Button>
-          </>
-        ) : (
-          <Button
-            className="bg-[#B4933F] hover:bg-[#947627]"
-            onClick={() => navigate("/questionaire")}
-          >
-            Questionaire
-          </Button>
-        )}
-      </div>
-      <Button
-        className="bg-[#B4933F] hover:bg-[#947627]"
-        onClick={handleLogout}
-      >
-        Logout
-      </Button>
-    </nav>
+          )}
+        </div>
+        <Button
+          className="bg-[#B4933F] hover:bg-[#947627]"
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
+      </nav>
+      <Toaster />
+    </>
   );
 }
