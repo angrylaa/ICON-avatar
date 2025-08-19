@@ -53,7 +53,7 @@ export function makeKnowledgeColumns(): ColumnDef<knowledgeBase>[] {
         return (
           <div className="flex gap-2 flex-wrap">
             {categories.map((cat: string, idx: number) => (
-              <Badge key={idx} className="bg-[#CBB06A] py-1 px-2 text-xs">
+              <Badge key={idx} className="bg-[#b4933f] py-1 px-2 text-xs">
                 {cat}
               </Badge>
             ))}
@@ -64,6 +64,10 @@ export function makeKnowledgeColumns(): ColumnDef<knowledgeBase>[] {
     {
       accessorKey: "createdAt",
       header: "Created At",
+      cell: ({ row }) => {
+        const date = row.original.createdAt;
+        return <div>{date ? new Date(date).toISOString() : "N/A"}</div>;
+      },
     },
     {
       id: "actions",

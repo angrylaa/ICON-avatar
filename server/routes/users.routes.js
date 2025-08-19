@@ -8,6 +8,9 @@ import {
 } from "../controller/user.controller.js";
 import { requireAuth, requireRole } from "../utils/admin.js";
 
+// All routes in this file are protected by requireAuth and requireRole('admin') middleware.
+// Only authenticated admins can access these endpoints.
+
 const router = Router();
 
 router.get("/", requireAuth, requireRole("admin"), getUsers);

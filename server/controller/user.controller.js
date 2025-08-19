@@ -65,7 +65,7 @@ export async function login(req, res, next) {
       path: "/",
     });
 
-    return res.json({ user, token }); // return token too if you want SPA to store it
+    return res.json({ user, token });
   } catch (err) {
     next(err);
   }
@@ -88,7 +88,9 @@ export async function deleteUser(req, res, next) {
   try {
     const { id } = req.params;
     if (isNaN(Number(id))) throw new AppError(400, "Invalid user ID");
-    const { deleteUser: deleteUserService } = await import("../services/user.service.js");
+    const { deleteUser: deleteUserService } = await import(
+      "../services/user.service.js"
+    );
     const result = await deleteUserService(Number(id));
     res.json(result);
   } catch (err) {
@@ -102,7 +104,9 @@ export async function updateUserRole(req, res, next) {
     const { id } = req.params;
     if (isNaN(Number(id))) throw new AppError(400, "Invalid user ID");
     const { validate, UpdateRoleSchema } = await import("../utils/validate.js");
-    const { updateUserRole: updateUserRoleService } = await import("../services/user.service.js");
+    const { updateUserRole: updateUserRoleService } = await import(
+      "../services/user.service.js"
+    );
     const { role } = validate(UpdateRoleSchema, req.body);
     const result = await updateUserRoleService(Number(id), role);
     res.json(result);
@@ -116,8 +120,12 @@ export async function resetUserPassword(req, res, next) {
   try {
     const { id } = req.params;
     if (isNaN(Number(id))) throw new AppError(400, "Invalid user ID");
-    const { validate, ResetPasswordSchema } = await import("../utils/validate.js");
-    const { resetUserPassword: resetUserPasswordService } = await import("../services/user.service.js");
+    const { validate, ResetPasswordSchema } = await import(
+      "../utils/validate.js"
+    );
+    const { resetUserPassword: resetUserPasswordService } = await import(
+      "../services/user.service.js"
+    );
     const { password } = validate(ResetPasswordSchema, req.body);
     const result = await resetUserPasswordService(Number(id), password);
     res.json(result);

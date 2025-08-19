@@ -3,7 +3,7 @@ import type { Route } from "./+types/home";
 import { MoveRight } from "lucide-react";
 import { MoveLeft } from "lucide-react";
 import { useState } from "react";
-import { useRequireAuth } from "~/lib/useRequireAuth";
+import { useRequireAuth } from "../lib/useRequireAuth";
 import { Navbar } from "../components/custom/Navbar";
 
 export function meta({}: Route.MetaArgs) {
@@ -17,23 +17,51 @@ export default function Questionaire() {
   useRequireAuth();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState("next");
+  const [selectedOptions, setSelectedOptions] = useState<(string | null)[]>([
+    null,
+    null,
+    null,
+  ]);
+  const [sending, setSending] = useState(false);
+
+  const handleSelect = (stepIdx: number, value: string) => {
+    setSelectedOptions((prev) => {
+      const updated = [...prev];
+      updated[stepIdx] = value;
+      return updated;
+    });
+  };
 
   const progressStep = (step: number, progression: string) => {
     if (progression === "next") {
       setDirection("next");
-      if (step === 0) {
-        setStep(1);
-      } else if (step === 1) {
-        setStep(2);
-      } else {
-        setStep(3);
+      if (step < 2) {
+        setStep(step + 1);
+      } else if (step === 2) {
+        // Send to backend when all 3 are selected
+        if (selectedOptions.every((opt) => opt)) {
+          setSending(true);
+          fetch("/api/temp-chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ selections: selectedOptions }),
+          })
+            .then(() => {
+              setSending(false);
+              // Navigate based on last selection
+              if (selectedOptions[2] === "text") {
+                window.location.href = "/chat";
+              } else if (selectedOptions[2] === "call") {
+                window.location.href = "/call";
+              }
+            })
+            .catch(() => setSending(false));
+        }
       }
     } else if (progression === "back") {
       setDirection("back");
-      if (step === 2) {
-        setStep(1);
-      } else if (step === 1) {
-        setStep(0);
+      if (step > 0) {
+        setStep(step - 1);
       }
     }
   };
@@ -54,17 +82,26 @@ export default function Questionaire() {
                   : "animate__slideInLeft"
               } mx-auto w-4xl grid grid-cols-3 gap-18 h-32 mb-10`}
             >
-              <div className="hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4">
+              <div
+                className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[0] === "Tyler" ? "border-4 border-[#8f5024]" : ""}`}
+                onClick={() => handleSelect(0, "Tyler")}
+              >
                 <div className="text-md text-center text-white font-bold">
                   Tyler: a graduate student exploring his early career!
                 </div>
               </div>
-              <div className="hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4">
+              <div
+                className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[0] === "Jenny" ? "border-4 border-[#8f5024]" : ""}`}
+                onClick={() => handleSelect(0, "Jenny")}
+              >
                 <div className="text-md text-center text-white font-bold">
                   Jenny: a mid-career working professional growing her career!
                 </div>
               </div>
-              <div className="hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4">
+              <div
+                className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[0] === "Daniel" ? "border-4 border-[#8f5024]" : ""}`}
+                onClick={() => handleSelect(0, "Daniel")}
+              >
                 <div className="text-md text-center text-white font-bold">
                   Daniel: a senior professional planning for retirement!
                 </div>
@@ -84,12 +121,18 @@ export default function Questionaire() {
                   : "animate__slideInLeft"
               } mx-auto w-xl grid grid-cols-2 gap-18 h-32 mb-10`}
             >
-              <div className="hover:cursor-pointer bg-[url('/frame4.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4">
+              <div
+                className={`hover:cursor-pointer bg-[url('/frame4.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[1] === "advice" ? "border-4 border-[#8f5024]" : ""}`}
+                onClick={() => handleSelect(1, "advice")}
+              >
                 <div className="text-md text-center text-white font-bold">
                   I'm looking for advice & resources!
                 </div>
               </div>
-              <div className="hover:cursor-pointer bg-[url('/frame5.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4">
+              <div
+                className={`hover:cursor-pointer bg-[url('/frame5.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[1] === "conversation" ? "border-4 border-[#8f5024]" : ""}`}
+                onClick={() => handleSelect(1, "conversation")}
+              >
                 <div className="text-md text-center text-white font-bold">
                   I'm looking for a general conversation!
                 </div>
@@ -109,12 +152,18 @@ export default function Questionaire() {
                   : "animate__slideInLeft"
               } mx-auto w-xl grid grid-cols-2 gap-18 h-32 mb-10`}
             >
-              <div className="hover:cursor-pointer bg-[url('/frame2.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4">
+              <div
+                className={`hover:cursor-pointer bg-[url('/frame2.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[2] === "text" ? "border-4 border-[#8f5024]" : ""}`}
+                onClick={() => handleSelect(2, "text")}
+              >
                 <div className="text-md text-center text-white font-bold">
                   Let's text!
                 </div>
               </div>
-              <div className="hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4">
+              <div
+                className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[2] === "call" ? "border-4 border-[#8f5024]" : ""}`}
+                onClick={() => handleSelect(2, "call")}
+              >
                 <div className="text-md text-center text-white font-bold">
                   Let's call!
                 </div>
@@ -140,6 +189,7 @@ export default function Questionaire() {
             onClick={() => {
               progressStep(step, "next");
             }}
+            disabled={!selectedOptions[step] || sending}
           >
             Next
             <MoveRight></MoveRight>

@@ -44,6 +44,7 @@ export function LoginForm() {
       const { user, token } = await loginUser(values);
       if (token) {
         localStorage.setItem("token", token);
+        localStorage.setItem("role", user.role);
       }
       if (user.role === "admin") {
         navigate("/admin");

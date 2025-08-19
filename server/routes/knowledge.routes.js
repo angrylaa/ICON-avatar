@@ -4,6 +4,7 @@ import {
   createKnowledge,
   updateKnowledge,
   deleteKnowledge,
+  getKnowledge,
 } from "../controller/knowledge.controller.js";
 
 const router = Router();
@@ -17,5 +18,6 @@ router.delete(
   requireRole("admin"),
   deleteKnowledge
 );
+router.get("/:table", requireAuth, getKnowledge);
 
 export default router;

@@ -2,7 +2,7 @@ import type { Route } from "./+types/home";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { makeUserColumns } from "../components/admin-table/columns";
 import { DataTable } from "../components/admin-table/table";
-import { useRequireAdmin } from "../lib/useRequireAdmin";
+import { useRequireAuth } from "../lib/useRequireAuth";
 import {
   createUser as createUserApi,
   deleteUserApi,
@@ -34,11 +34,12 @@ import {
 import { useNavigate } from "react-router";
 import { Navbar } from "../components/custom/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { DataTable as DanielTable } from "~/components/daniel-data-table/table";
+import { DataTable as KnowledgeTable } from "~/components/knowledgeBase/table";
 import {
   makeKnowledgeColumns,
   type knowledgeBase,
-} from "~/components/daniel-data-table/columns";
+} from "~/components/knowledgeBase/columns";
+import { CreateKnowledgeEntryDialog } from "../components/knowledgeBase/table";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Admin" }, { name: "description", content: "Admin Panel" }];
@@ -53,7 +54,7 @@ const CreateUserSchema = z.object({
 });
 
 export default function Admin() {
-  const ok = useRequireAdmin();
+  useRequireAuth("admin");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [danielKnowledge, setDanielKnowledge] = useState<knowledgeBase[]>([]);
@@ -67,7 +68,6 @@ export default function Admin() {
       : undefined;
 
   useEffect(() => {
-    if (!ok) return;
     (async () => {
       try {
         const list = await getAllUsers(token);
@@ -76,10 +76,9 @@ export default function Admin() {
         console.error(e);
       }
     })();
-  }, [ok, token]);
+  }, [token]);
 
   useEffect(() => {
-    if (!ok) return;
     (async () => {
       try {
         const token = localStorage.getItem("token");
@@ -125,7 +124,7 @@ export default function Admin() {
         setJennyKnowledge([]);
       }
     })();
-  }, [ok]);
+  }, []);
 
   const handleDelete = useCallback(
     async (user: User) => {
@@ -190,12 +189,10 @@ export default function Admin() {
     }
   }
 
-  if (!ok) return null;
-
   return (
     <>
       <Navbar />
-      <div className="space-y-6 h-screen bg-[#FFF6DE] justify-center overflow-hidden">
+      <div className="space-y-6 min-h-screen h-[100%] bg-[#FFF6DE] justify-center">
         <div className="rounded-md mx-auto max-w-300 p-12">
           <h2 className="mb-3 text-lg font-semibold">Create User</h2>
           <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
@@ -290,19 +287,85 @@ export default function Admin() {
                 <TabsTrigger value="jenny">Jenny</TabsTrigger>
               </TabsList>
               <TabsContent value="tyler">
-                <DanielTable
+                <CreateKnowledgeEntryDialog
+                  table="tylerknowledge"
+                  onCreated={() => {
+                    // refetch tylerKnowledge
+                    (async () => {
+                      const token = localStorage.getItem("token");
+                      const tylerRes = await fetch(
+                        `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/tylerknowledge`,
+                        {
+                          headers: {
+                            "Content-Type": "application/json",
+                            ...(token
+                              ? { Authorization: `Bearer ${token}` }
+                              : {}),
+                          },
+                        }
+                      );
+                      const tylerResult = await tylerRes.json();
+                      setTylerKnowledge(tylerResult.data || []);
+                    })();
+                  }}
+                />
+                <KnowledgeTable
                   columns={knowledgeBaseColumns}
                   data={tylerKnowledge}
                 />
               </TabsContent>
               <TabsContent value="daniel">
-                <DanielTable
+                <CreateKnowledgeEntryDialog
+                  table="danielknowledge"
+                  onCreated={() => {
+                    // refetch danielKnowledge
+                    (async () => {
+                      const token = localStorage.getItem("token");
+                      const danielRes = await fetch(
+                        `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/danielknowledge`,
+                        {
+                          headers: {
+                            "Content-Type": "application/json",
+                            ...(token
+                              ? { Authorization: `Bearer ${token}` }
+                              : {}),
+                          },
+                        }
+                      );
+                      const danielResult = await danielRes.json();
+                      setDanielKnowledge(danielResult.data || []);
+                    })();
+                  }}
+                />
+                <KnowledgeTable
                   columns={knowledgeBaseColumns}
                   data={danielKnowledge}
                 />
               </TabsContent>
               <TabsContent value="jenny">
-                <DanielTable
+                <CreateKnowledgeEntryDialog
+                  table="jennyknowledge"
+                  onCreated={() => {
+                    // refetch jennyKnowledge
+                    (async () => {
+                      const token = localStorage.getItem("token");
+                      const jennyRes = await fetch(
+                        `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/knowledge/jennyknowledge`,
+                        {
+                          headers: {
+                            "Content-Type": "application/json",
+                            ...(token
+                              ? { Authorization: `Bearer ${token}` }
+                              : {}),
+                          },
+                        }
+                      );
+                      const jennyResult = await jennyRes.json();
+                      setJennyKnowledge(jennyResult.data || []);
+                    })();
+                  }}
+                />
+                <KnowledgeTable
                   columns={knowledgeBaseColumns}
                   data={jennyKnowledge}
                 />
