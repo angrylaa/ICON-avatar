@@ -19,116 +19,183 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const form = useForm<{ chat: string }>({ defaultValues: { chat: "" } });
 
+  // These can be set by props, context, or user selection
+  const name = "tyler"; // or "daniel", "jenny"
+  const categories = ["General Knowledge"];
+  const style = "career advice";
+
+  // Track if this is a new conversation
+  const [conversationStarted, setConversationStarted] = useState(false);
+
+  // Read selections from questionaire (localStorage/sessionStorage)
   useEffect(() => {
     inputRef.current?.focus();
+    // Get selections from localStorage (or sessionStorage)
+    const selections = JSON.parse(
+      localStorage.getItem("questionaireSelections") || "[]"
+    );
+    // selections: [avatar, style, path]
+    if (Array.isArray(selections) && selections.length === 3) {
+      // Set AI profile, categories, style
+      setConversationStarted(false);
+      setMessages([]);
+      // Set name, style, categories from selections
+      // You may want to use useState for these if they need to be dynamic
+      // For now, just use variables
+      // name = selections[0].toLowerCase();
+      // style = selections[1];
+      // categories = [selections[1]];
+      // Auto-send first message (selected path)
+      const firstMsg = selections[2];
+      if (firstMsg) {
+        handleSend({ chat: firstMsg });
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    // Auto-scroll to bottom when messages change
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSend = async (data: { chat: string }) => {
     const cleanInput = useSanitize(data.chat);
     if (!cleanInput.trim() || loading) return;
-    const userMsg: ChatMessage = { sender: "user", text: cleanInput };
+    const userMsg: ChatMessage = {
+      role: "user",
+      parts: [{ text: cleanInput }],
+    };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
-    const aiRes = await sendChatMessage(cleanInput);
-    setMessages((prev) => [...prev, { sender: "ai", text: aiRes.reply }]);
+    try {
+      const aiRes = await sendChatMessage(
+        cleanInput,
+        [...messages, userMsg],
+        name,
+        categories,
+        style,
+        !conversationStarted
+      );
+      setConversationStarted(true);
+      // Append AI reply to local history
+      setMessages((prev) => [
+        ...prev,
+        { role: "model", parts: [{ text: aiRes.reply }] },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "model", parts: [{ text: "Sorry, something went wrong." }] },
+      ]);
+    }
     setLoading(false);
     form.reset();
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-[#FFF6DE]">
       <Navbar />
-      <div className="relative flex-1 flex flex-col items-center justify-center bg-[#FFF6DE]">
-        <img
-          src="/topright.png"
-          alt="top right corner"
-          className="absolute top-0 right-0 w-1/3 max-w-[320px] h-auto z-0"
-          style={{ pointerEvents: "none" }}
-        />
-        <img
-          src="/bottomleft.png"
-          alt="bottom left corner"
-          className="absolute bottom-0 left-0 w-1/3 max-w-[320px] h-auto z-0"
-          style={{ pointerEvents: "none" }}
-        />
-        <div className="relative z-10 w-full max-w-2xl mx-auto flex flex-col items-center justify-center">
-          <div className="flex flex-col items-center mb-8">
-            <div className="flex flex-col items-center">
-              <img
-                src="/frame1.png"
-                alt="Tyler avatar"
-                className="w-48 h-48 rounded-full mb-2 object-cover"
-              />
-              <div className="text-xl font-bold text-[#B4933F] mb-12">
-                Tyler
-              </div>
-            </div>
-            <div className="flex gap-4 mb-6">
-              <div className="hover:cursor-pointer animate__animated animate__pulse bg-[#CBB06A] rounded-md p-4 w-56 text-[#fff] text-sm flex flex-col items-center">
-                <span>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  <BotMessageSquare className="mt-4"></BotMessageSquare>
-                </span>
-              </div>
-              <div className="hover:cursor-pointer animate__animated animate__pulse bg-[#CBB06A] rounded-md p-4 w-56 text-[#fff] text-sm flex flex-col items-center">
-                <span>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  <BotMessageSquare className="mt-4"></BotMessageSquare>
-                </span>
-              </div>
-              <div className="hover:cursor-pointer animate__animated animate__pulse bg-[#CBB06A] rounded-md p-4 w-56 text-[#fff] text-sm flex flex-col items-center">
-                <span>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  <BotMessageSquare className="mt-4"></BotMessageSquare>
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="w-full flex flex-col gap-4 mb-4 max-h-132 p-4 overflow-y-auto">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`rounded-md px-4 py-2 text-sm ${msg.sender === "user" ? "border border-[#947627] max-w-[80%] bg-white text-[#B4933F]" : "border border-[#947627] bg-[#CBB06A] text-white max-w-[80%]"}`}
-                >
-                  {msg.text}
+
+      <div className="flex gap-4 items-center justify-center flex-1">
+        <div className="border-2 border-black w-1/3 h-1/2 max-w-[700px]">
+          AI avatar here
+        </div>
+        <div className="h-1/2 min-h-fit max-h-[800px] flex flex-col min-w-[500px] w-1/2 max-w-[700px] gap-8">
+          <div className="bg-white rounded-2xl shadow-md p-8 flex flex-col items-center">
+            <div className="flex items-center gap-6 mb-4">
+              <div>
+                <div className="text-2xl font-bold text-[#B4933F] mb-2">
+                  Tyler
+                </div>
+                <div className="text-[#B4933F] text-sm font-medium">
+                  Your chat buddy Tyler, a graduate student looking for
+                  internships and exploring his early career!
                 </div>
               </div>
-            ))}
+            </div>
+            <div className="flex gap-4 mt-4">
+              <button className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2">
+                <span>Lorem ipsum dolorerg ergeregr ergerge</span>
+              </button>
+              <button className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2">
+                <span>Lorem ipsum dolorerg ergeregr ergerge</span>
+              </button>
+            </div>
           </div>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleSend)}
-              className="w-full flex mt-2 justify-center items-center"
+          <div className="bg-white rounded-2xl shadow-md flex flex-col justify-between min-h-[340px] p-6">
+            <div
+              ref={chatContainerRef}
+              className="max-h-100 flex flex-col gap-4 mb-4 overflow-y-auto p-4 custom-scrollbar"
+              style={{ maxHeight: 220 }}
             >
-              <FormItem className="w-full">
-                <FormControl>
-                  <Input
-                    type="text"
-                    className="bg-white border border-[#947627] rounded-sm p-4 w-full focus:outline-none"
-                    placeholder="Let's chat..."
-                    {...form.register("chat")}
-                    disabled={loading}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-              <Button
-                type="submit"
-                className="ml-2 px-6 py-2 bg-[#B4933F] text-white rounded-md hover:bg-[#947627]"
-                disabled={loading || !form.watch("chat").trim()}
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`rounded-md px-4 py-3 text-base font-medium ${msg.role === "user" ? "border border-[#947627] max-w-[80%] bg-white text-[#B4933F]" : "border border-[#947627] bg-[#CBB06A] text-white max-w-[80%]"}`}
+                  >
+                    {msg.parts.map((part, i) => (
+                      <span key={i}>{part.text}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(handleSend)}
+                className="flex items-center gap-2 mt-2"
               >
-                Send
-              </Button>
-            </form>
-          </Form>
+                <FormItem className="flex-1">
+                  <FormControl>
+                    <Input
+                      type="text"
+                      className="bg-[#F7F3E3] border-none rounded-full px-5 py-3 w-full focus:outline-none text-[#B4933F] placeholder-[#B4933F]"
+                      placeholder="Let's chat..."
+                      {...form.register("chat")}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+                <Button
+                  type="submit"
+                  className="px-8 py-3 bg-[#CBB06A] text-white rounded-full font-semibold text-base hover:bg-[#B4933F]"
+                  disabled={loading || !form.watch("chat").trim()}
+                >
+                  Send
+                </Button>
+              </form>
+            </Form>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+/* Add custom scrollbar styles */
+// In the same file or in app.css, add:
+/*
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background: #F7F3E3;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #CBB06A;
+  border-radius: 8px;
+}
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #CBB06A #F7F3E3;
+}
+*/

@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { getAuthToken } from "~/lib/utils";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -7,11 +8,7 @@ export async function getKnowledge(
   token?: string | null
 ): Promise<any> {
   try {
-    const authToken =
-      token ??
-      (typeof window !== "undefined"
-        ? localStorage.getItem("token")
-        : undefined);
+    const authToken = token ?? getAuthToken();
     const res = await fetch(`${API_URL}/knowledge/${table}`, {
       headers: {
         "Content-Type": "application/json",
@@ -41,11 +38,7 @@ export async function createKnowledge(
   token?: string
 ): Promise<any> {
   try {
-    const authToken =
-      token ??
-      (typeof window !== "undefined"
-        ? localStorage.getItem("token")
-        : undefined);
+    const authToken = token ?? getAuthToken();
     const res = await fetch(`${API_URL}/knowledge/${table}`, {
       method: "POST",
       headers: {
@@ -69,11 +62,7 @@ export async function deleteKnowledge(
   token?: string
 ): Promise<any> {
   try {
-    const authToken =
-      token ??
-      (typeof window !== "undefined"
-        ? localStorage.getItem("token")
-        : undefined);
+    const authToken = token ?? getAuthToken();
     const res = await fetch(`${API_URL}/knowledge/${table}/${id}`, {
       method: "DELETE",
       headers: {

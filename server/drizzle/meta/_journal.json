@@ -15,6 +15,13 @@
       "when": 1755024586301,
       "tag": "0001_skinny_lifeguard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1755663119840,
+      "tag": "0002_ancient_black_tom",
+      "breakpoints": true
     }
   ]
 }

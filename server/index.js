@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import usersRoutes from "./routes/users.routes.js";
 import cors from "cors";
 import knowledgeRoutes from "./routes/knowledge.routes.js";
+import conversationRoutes from "./routes/conversation.routes.js";
 
 const app = express();
 app.use(express.json());
@@ -14,6 +15,7 @@ app.use(cors());
 app.use("/auth", authRoutes);
 app.use("/users", usersRoutes);
 app.use("/knowledge", knowledgeRoutes);
+app.use("/conversation", conversationRoutes);
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 app.use(errorMiddleware);
