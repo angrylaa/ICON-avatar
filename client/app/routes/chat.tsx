@@ -22,10 +22,13 @@ export default function Chat() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const form = useForm<{ chat: string }>({ defaultValues: { chat: "" } });
 
-  // These can be set by props, context, or user selection
-  const name = "tyler"; // or "daniel", "jenny"
-  const categories = ["General Knowledge"];
-  const style = "career advice";
+  // State for dynamic profile
+  const [profile, setProfile] = useState({
+    name: "tyler",
+    style: "career advice",
+    categories: ["General Knowledge"],
+    avatarImg: "/frame1.png",
+  });
 
   // Track if this is a new conversation
   const [conversationStarted, setConversationStarted] = useState(false);
@@ -33,25 +36,28 @@ export default function Chat() {
   // Read selections from questionaire (localStorage/sessionStorage)
   useEffect(() => {
     inputRef.current?.focus();
-    // Get selections from localStorage (or sessionStorage)
+    // Get selections from localStorage (set by questionaire)
     const selections = JSON.parse(
       localStorage.getItem("questionaireSelections") || "[]"
     );
-    // selections: [avatar, style, path]
     if (Array.isArray(selections) && selections.length === 3) {
-      // Set AI profile, categories, style
+      // selections: [avatar, style, path]
+      let name = selections[0]?.toLowerCase() || "tyler";
+      let style = selections[1] || "career advice";
+      let categories = [style];
+      let avatarImg =
+        name === "tyler"
+          ? "/frame1.png"
+          : name === "jenny"
+            ? "/frame3.png"
+            : "/frame2.png";
+      setProfile({ name, style, categories, avatarImg });
       setConversationStarted(false);
       setMessages([]);
-      // Set name, style, categories from selections
-      // You may want to use useState for these if they need to be dynamic
-      // For now, just use variables
-      // name = selections[0].toLowerCase();
-      // style = selections[1];
-      // categories = [selections[1]];
       // Auto-send first message (selected path)
       const firstMsg = selections[2];
       if (firstMsg) {
-        handleSend({ chat: firstMsg });
+        handleSendWithProfile({ chat: firstMsg }, name, style, categories);
       }
     }
   }, []);
@@ -64,7 +70,23 @@ export default function Chat() {
     }
   }, [messages]);
 
+  // Main send handler for form
   const handleSend = async (data: { chat: string }) => {
+    await handleSendWithProfile(
+      data,
+      profile.name,
+      profile.style,
+      profile.categories
+    );
+  };
+
+  // Internal handler for auto-send and backend context
+  const handleSendWithProfile = async (
+    data: { chat: string },
+    forcedName?: string,
+    forcedStyle?: string,
+    forcedCategories?: string[]
+  ) => {
     const cleanInput = useSanitize(data.chat);
     if (!cleanInput.trim() || loading) return;
     const userMsg: ChatMessage = {
@@ -78,9 +100,9 @@ export default function Chat() {
       const aiRes = await sendChatMessage(
         cleanInput,
         [...messages, userMsg],
-        name,
-        categories,
-        style,
+        forcedName || profile.name,
+        forcedCategories || profile.categories,
+        forcedStyle || profile.style,
         !conversationStarted
       );
       setConversationStarted(true);
@@ -104,19 +126,32 @@ export default function Chat() {
       <Navbar />
 
       <div className="flex gap-4 items-center justify-center flex-1">
-        <div className="border-2 border-black w-1/3 h-1/2 max-w-[700px]">
-          AI avatar here
+        <div className="border-2 border-black w-1/3 h-1/2 max-w-[700px] flex items-center justify-center">
+          <img
+            src={profile.avatarImg}
+            alt={profile.name + " avatar"}
+            className="rounded-full object-cover w-32 h-32"
+          />
         </div>
         <div className="h-1/2 min-h-fit max-h-[800px] flex flex-col min-w-[500px] w-1/2 max-w-[700px] gap-8">
           <div className="bg-white rounded-2xl shadow-md p-8 flex flex-col items-center">
             <div className="flex items-center gap-6 mb-4">
               <div>
                 <div className="text-2xl font-bold text-[#B4933F] mb-2">
-                  Tyler
+                  {profile.name.charAt(0).toUpperCase() + profile.name.slice(1)}
                 </div>
                 <div className="text-[#B4933F] text-sm font-medium">
-                  Your chat buddy Tyler, a graduate student looking for
-                  internships and exploring his early career!
+                  {profile.name === "tyler"
+                    ? "Your chat buddy Tyler, a graduate student looking for internships and exploring his early career!"
+                    : profile.name === "jenny"
+                      ? "Your chat buddy Jenny, a mid-career professional growing her career!"
+                      : "Your chat buddy Daniel, a senior professional planning for retirement!"}
+                </div>
+                <div className="mt-2 text-xs text-[#947627] font-semibold">
+                  Focus: {profile.style}
+                </div>
+                <div className="mt-1 text-xs text-[#947627] font-semibold">
+                  Categories: {profile.categories.join(", ")}
                 </div>
               </div>
             </div>
