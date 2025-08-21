@@ -148,7 +148,18 @@ export async function messageAI(req, res, next) {
       .filter((p) => p && p.length > 0)
       .slice(0, 2);
 
-    res.json({ reply: safeReply, history: updatedHistory, suggestedPrompts });
+    res.json({
+      ok: true,
+      version: "1.0",
+      reply: safeReply,
+      suggestedPrompts,
+      history: updatedHistory,
+      meta: {
+        model: "gemini-2.5-flash",
+        maxChars: MAX_REPLY_CHARS,
+        mode,
+      },
+    });
   } catch (err) {
     next(err);
   }

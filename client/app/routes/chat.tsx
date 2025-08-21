@@ -134,6 +134,7 @@ export default function Chat() {
         forcedStyle || profile.style,
         !conversationStarted
       );
+      if (!aiRes.ok) throw new Error("AI response not ok");
       setConversationStarted(true);
       // Append AI reply to local history
       setMessages((prev) => [
@@ -284,9 +285,7 @@ export default function Chat() {
                   disabled={loading || !form.watch("chat").trim()}
                 >
                   {loading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="animate-spin w-4 h-4" /> Sending
-                    </span>
+                    <span className="flex items-center gap-2"><Loader2 className="animate-spin w-4 h-4" /> Sending</span>
                   ) : (
                     "Send"
                   )}
@@ -310,24 +309,11 @@ function MessageRenderer({
   // For model messages, render markdown (supports *, **, lists via GFM)
   if (isModel) {
     return (
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          strong: ({
-            node,
-            ...props
-          }: {
-            node?: unknown;
-            [key: string]: any;
-          }) => <strong {...props} />,
-          em: ({ node, ...props }: { node?: unknown; [key: string]: any }) => (
-            <em {...props} />
-          ),
-          p: ({ node, ...props }: { node?: unknown; [key: string]: any }) => (
-            <p className="whitespace-pre-wrap" {...props} />
-          ),
-        }}
-      >
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+        strong: ({ node, ...props }: { node?: unknown; [key: string]: any }) => <strong {...props} />,
+        em: ({ node, ...props }: { node?: unknown; [key: string]: any }) => <em {...props} />,
+        p: ({ node, ...props }: { node?: unknown; [key: string]: any }) => <p className="whitespace-pre-wrap" {...props} />,
+      }}>
         {text}
       </ReactMarkdown>
     );
