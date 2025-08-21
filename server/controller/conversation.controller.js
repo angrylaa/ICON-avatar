@@ -1,7 +1,6 @@
 import { db } from "../db/db.js";
 import { GoogleGenAI } from "@google/genai";
-import { userConversations } from "../db/schema/users.js";
-import { and, desc, eq } from "drizzle-orm";
+// All chat history persistence is handled on the frontend now
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -95,44 +94,7 @@ export async function messageAI(req, res, next) {
     const context = fetchContext(String(name).toLowerCase(), style);
     const knowledgePrimer = buildKnowledgePrimer(knowledge, categories);
 
-    // Persist/replace user conversation
-    const serializedHistory = JSON.stringify(history || []);
-    if (newConversation) {
-      // Replace by deleting previous conversations for user
-      await db.delete(userConversations).where(eq(userConversations.userId, userId));
-      await db.insert(userConversations).values({
-        userId,
-        history: serializedHistory,
-        categories: Array.isArray(categories) ? categories.join(",") : null,
-        style: style || null,
-      });
-    } else {
-      // Update latest conversation
-      const latest = await db
-        .select()
-        .from(userConversations)
-        .where(eq(userConversations.userId, userId))
-        .orderBy(desc(userConversations.startedAt))
-        .limit(1);
-      if (latest && latest.length > 0) {
-        await db
-          .update(userConversations)
-          .set({
-            history: serializedHistory,
-            updatedAt: new Date(),
-            categories: Array.isArray(categories) ? categories.join(",") : latest[0].categories,
-            style: style || latest[0].style,
-          })
-          .where(eq(userConversations.id, latest[0].id));
-      } else {
-        await db.insert(userConversations).values({
-          userId,
-          history: serializedHistory,
-          categories: Array.isArray(categories) ? categories.join(",") : null,
-          style: style || null,
-        });
-      }
-    }
+    // No server-side persistence for history; frontend maintains and sends it each request
 
     const chatInstance = ai.chats.create({
       model: "gemini-2.5-flash",
@@ -147,21 +109,8 @@ export async function messageAI(req, res, next) {
     // Send message to chat
     const response = await chatInstance.sendMessage({ message });
 
-    // After receiving AI response, append to history and persist
+    // After receiving AI response, append to history locally only
     const updatedHistory = [...(history || []), { role: "model", parts: [{ text: response.text }] }];
-    const updatedSerialized = JSON.stringify(updatedHistory);
-    const latest = await db
-      .select()
-      .from(userConversations)
-      .where(eq(userConversations.userId, userId))
-      .orderBy(desc(userConversations.startedAt))
-      .limit(1);
-    if (latest && latest.length > 0) {
-      await db
-        .update(userConversations)
-        .set({ history: updatedSerialized, updatedAt: new Date() })
-        .where(eq(userConversations.id, latest[0].id));
-    }
 
     // console.debug("AI response", response);
 
