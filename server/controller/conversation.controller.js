@@ -114,10 +114,24 @@ export async function messageAI(req, res, next) {
 
     // console.debug("AI response", response);
 
-    // Generate two recommended prompts based on the user's selected mode (advice vs conversation)
+    // Generate two recommended prompts using AI based on conversation context
     const mode = inferConversationMode(style, categories);
     const topic = extractTopicFromText(message || response.text || "");
-    const suggestedPrompts = generateSuggestedPrompts(mode, topic, message, response.text);
+    let suggestedPrompts = [];
+    try {
+      suggestedPrompts = await generateSuggestedPromptsAI({
+        name,
+        style,
+        categories,
+        history: updatedHistory,
+        lastUserText: message,
+        lastAiText: response.text,
+        mode,
+      });
+    } catch {}
+    if (!Array.isArray(suggestedPrompts) || suggestedPrompts.length === 0) {
+      suggestedPrompts = generateSuggestedPrompts(mode, topic, message, response.text);
+    }
 
     res.json({ reply: response.text, history: updatedHistory, suggestedPrompts });
   } catch (err) {
@@ -160,4 +174,52 @@ function generateSuggestedPrompts(mode, topic, lastUserText, lastAiText) {
     `That's interesting about ${safeTopic}. Can you tell me more?`,
     `How did you get started with ${safeTopic}, and what has helped you the most?`,
   ];
+}
+
+async function generateSuggestedPromptsAI({ name, style, categories, history, lastUserText, lastAiText, mode }) {
+  const safeMode = mode === "advice" ? "advice" : "conversation";
+  const instruction = [
+    `You are helping propose the next two user prompts for a chat assistant. The user selected mode: ${safeMode}.`,
+    `Generate two thoughtful, diverse, short follow-up prompts (<120 characters each) that would move the conversation forward.`,
+    `Tailor them to the user's context and the assistant's latest reply. Avoid repeating the user's last question verbatim.`,
+    `Do not ask the same thing twice. If in advice mode, one prompt should be action-oriented and one should ask for resources/examples.`,
+    `Output ONLY a valid JSON array of exactly two strings, no preamble or extra text.`,
+  ].join("\n");
+
+  const suggChat = ai.chats.create({
+    model: "gemini-2.5-flash",
+    history: Array.isArray(history) ? history : [],
+    config: {
+      systemInstruction: instruction,
+    },
+  });
+
+  const suggestionPrompt = [
+    `Last user message: ${String(lastUserText || "").slice(0, 1200)}`,
+    `Last assistant reply: ${String(lastAiText || "").slice(0, 1200)}`,
+    `Style: ${String(style || "").slice(0, 200)}; Categories: ${(Array.isArray(categories) ? categories.join(", ") : "").slice(0, 200)}`,
+    `Return JSON now.`,
+  ].join("\n");
+
+  const gen = await suggChat.sendMessage({ message: suggestionPrompt });
+  const raw = String(gen.text || gen?.response?.text || "").trim();
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed
+        .map((s) => String(s || "").trim())
+        .filter((s) => s.length > 0)
+        .slice(0, 2);
+      if (cleaned.length === 2) return cleaned;
+    }
+  } catch {}
+  // fallback: try to split lines
+  const lines = raw
+    .replace(/^```[\s\S]*?\n|```$/g, "")
+    .split(/\n|\r/)
+    .map((l) => l.replace(/^[-*\d.\s]+/, "").trim())
+    .filter(Boolean)
+    .slice(0, 2);
+  if (lines.length === 2) return lines;
+  return [];
 }
