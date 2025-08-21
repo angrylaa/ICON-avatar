@@ -17,7 +17,8 @@ export async function sendChatMessage(
 ): Promise<{ reply: string; history: ChatMessage[] }> {
   const authToken = getAuthToken();
 
-  console.log(message, history, name, categories, style, newConversation);
+  // Debug parameters if needed
+  // console.debug({ message, history, name, categories, style, newConversation });
 
   const res = await fetch(`${API_URL}/conversation/send-message`, {
     method: "POST",

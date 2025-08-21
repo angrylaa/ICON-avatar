@@ -42,7 +42,7 @@ export default function Chat() {
     );
     if (Array.isArray(selections) && selections.length === 3) {
       // selections: [avatar, style, path]
-      let name = selections[0]?.toLowerCase() || "tyler";
+      let name = (selections[0] || "tyler").toLowerCase();
       let style = selections[1] || "career advice";
       let categories = [style];
       let avatarImg =
@@ -54,9 +54,9 @@ export default function Chat() {
       setProfile({ name, style, categories, avatarImg });
       setConversationStarted(false);
       setMessages([]);
-      // Auto-send first message (selected path)
+      // Only auto-send if the third selection is not 'text' or 'call'
       const firstMsg = selections[2];
-      if (firstMsg) {
+      if (firstMsg && firstMsg !== "text" && firstMsg !== "call") {
         handleSendWithProfile({ chat: firstMsg }, name, style, categories);
       }
     }
@@ -176,7 +176,7 @@ export default function Chat() {
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`rounded-md px-4 py-3 text-base font-medium ${msg.role === "user" ? "border border-[#947627] max-w-[80%] bg-white text-[#B4933F]" : "border border-[#947627] bg-[#CBB06A] text-white max-w-[80%]"}`}
+                    className={`text-sm rounded-md px-4 py-3 text-base font-medium ${msg.role === "user" ? "border border-[#947627] max-w-[80%] bg-white text-[#B4933F]" : "border border-[#947627] bg-[#CBB06A] text-white max-w-[80%]"}`}
                   >
                     {msg.parts.map((part, i) => (
                       <span key={i}>{part.text}</span>
