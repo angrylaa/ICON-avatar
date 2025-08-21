@@ -42,7 +42,7 @@ export default function Chat() {
     );
     if (Array.isArray(selections) && selections.length === 3) {
       // selections: [avatar, style, path]
-      let name = selections[0]?.toLowerCase() || "tyler";
+      let name = (selections[0] || "tyler").toLowerCase();
       let style = selections[1] || "career advice";
       let categories = [style];
       let avatarImg =

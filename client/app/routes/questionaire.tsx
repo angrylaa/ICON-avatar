@@ -38,24 +38,24 @@ export default function Questionaire() {
       if (step < 2) {
         setStep(step + 1);
       } else if (step === 2) {
-        // Send to backend when all 3 are selected
+        // Finalize selections when all 3 are chosen
         if (selectedOptions.every((opt) => opt)) {
-          setSending(true);
-          fetch("/api/temp-chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ selections: selectedOptions }),
-          })
-            .then(() => {
-              setSending(false);
-              // Navigate based on last selection
-              if (selectedOptions[2] === "text") {
-                window.location.href = "/chat";
-              } else if (selectedOptions[2] === "call") {
-                window.location.href = "/call";
-              }
-            })
-            .catch(() => setSending(false));
+          try {
+            setSending(true);
+            // Persist for chat route to pick up
+            localStorage.setItem(
+              "questionaireSelections",
+              JSON.stringify(selectedOptions)
+            );
+            // Navigate based on last selection
+            if (selectedOptions[2] === "text") {
+              window.location.href = "/chat";
+            } else if (selectedOptions[2] === "call") {
+              window.location.href = "/call";
+            }
+          } finally {
+            setSending(false);
+          }
         }
       }
     } else if (progression === "back") {
