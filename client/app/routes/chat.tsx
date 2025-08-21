@@ -18,6 +18,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const form = useForm<{ chat: string }>({ defaultValues: { chat: "" } });
@@ -29,6 +30,21 @@ export default function Chat() {
     categories: ["General Knowledge"],
     avatarImg: "/frame1.png",
   });
+
+  const generateInitialSuggestions = (style: string, categories: string[]) => {
+    const haystack = [String(style || "").toLowerCase(), ...(Array.isArray(categories) ? categories : []).map((c) => String(c).toLowerCase())].join(" ");
+    const mode = haystack.includes("advice") || haystack.includes("resource") ? "advice" : "conversation";
+    if (mode === "advice") {
+      return [
+        "What are the most important first steps to make progress?",
+        "Do you have 2–3 resources or examples I can use?",
+      ];
+    }
+    return [
+      "That's interesting. Can you tell me more?",
+      "How did you get started, and what helped you the most?",
+    ];
+  };
 
   // Track if this is a new conversation
   const [conversationStarted, setConversationStarted] = useState(false);
@@ -54,6 +70,7 @@ export default function Chat() {
       setProfile({ name, style, categories, avatarImg });
       setConversationStarted(false);
       setMessages([]);
+      setSuggestedPrompts(generateInitialSuggestions(style, categories));
       // Only auto-send if the third selection is not 'text' or 'call'
       const firstMsg = selections[2];
       if (firstMsg && firstMsg !== "text" && firstMsg !== "call") {
@@ -111,6 +128,10 @@ export default function Chat() {
         ...prev,
         { role: "model", parts: [{ text: aiRes.reply }] },
       ]);
+      // Update suggested prompts if provided
+      if (Array.isArray(aiRes.suggestedPrompts) && aiRes.suggestedPrompts.length > 0) {
+        setSuggestedPrompts(aiRes.suggestedPrompts.slice(0, 2));
+      }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -156,11 +177,31 @@ export default function Chat() {
               </div>
             </div>
             <div className="flex gap-4 mt-4">
-              <button className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2">
-                <span>Lorem ipsum dolorerg ergeregr ergerge</span>
+              <button
+                className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2"
+                onClick={() => {
+                  const prompt = suggestedPrompts[0];
+                  if (prompt) {
+                    form.setValue("chat", prompt);
+                    handleSend({ chat: prompt });
+                  }
+                }}
+                disabled={!suggestedPrompts[0] || loading}
+              >
+                <span>{suggestedPrompts[0] || ""}</span>
               </button>
-              <button className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2">
-                <span>Lorem ipsum dolorerg ergeregr ergerge</span>
+              <button
+                className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2"
+                onClick={() => {
+                  const prompt = suggestedPrompts[1];
+                  if (prompt) {
+                    form.setValue("chat", prompt);
+                    handleSend({ chat: prompt });
+                  }
+                }}
+                disabled={!suggestedPrompts[1] || loading}
+              >
+                <span>{suggestedPrompts[1] || ""}</span>
               </button>
             </div>
           </div>

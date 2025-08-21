@@ -114,8 +114,50 @@ export async function messageAI(req, res, next) {
 
     // console.debug("AI response", response);
 
-    res.json({ reply: response.text, history: updatedHistory });
+    // Generate two recommended prompts based on the user's selected mode (advice vs conversation)
+    const mode = inferConversationMode(style, categories);
+    const topic = extractTopicFromText(message || response.text || "");
+    const suggestedPrompts = generateSuggestedPrompts(mode, topic, message, response.text);
+
+    res.json({ reply: response.text, history: updatedHistory, suggestedPrompts });
   } catch (err) {
     next(err);
   }
+}
+
+// Determine whether the user wanted advice or a general conversation
+function inferConversationMode(style, categories) {
+  const haystack = [String(style || "").toLowerCase(), ...(Array.isArray(categories) ? categories : []).map((c) => String(c).toLowerCase())].join(" ");
+  if (haystack.includes("advice") || haystack.includes("resource")) return "advice";
+  if (haystack.includes("conversation") || haystack.includes("chat") || haystack.includes("talk")) return "conversation";
+  return "conversation";
+}
+
+// Very light topic extraction from a text input
+function extractTopicFromText(text) {
+  if (!text || typeof text !== "string") return "this topic";
+  const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+  const words = normalized.split(/\s+/).filter(Boolean);
+  const stop = new Set([
+    "i","im","i'm","am","is","are","was","were","be","been","being","the","a","an","and","or","but","if","then","so","to","for","with","on","in","of","at","by","from","about","as","it","this","that","these","those","you","your","yours","my","mine","me","we","our","ours","they","their","them","he","she","his","her","hers","do","does","did","doing","can","could","should","would","will","won't","dont","don't","didnt","didn't","cant","can't","just","like"
+  ]);
+  const keywords = words.filter((w) => w.length > 2 && !stop.has(w));
+  if (keywords.length === 0) return "this topic";
+  const top = keywords.slice(0, 3).join(" ");
+  return top.trim() || "this topic";
+}
+
+function generateSuggestedPrompts(mode, topic, lastUserText, lastAiText) {
+  const safeTopic = topic || "this topic";
+  if (mode === "advice") {
+    return [
+      `What are the most important first steps to make progress on ${safeTopic}?`,
+      `Do you have 2–3 resources, examples, or templates that can help with ${safeTopic}?`,
+    ];
+  }
+  // conversation mode
+  return [
+    `That's interesting about ${safeTopic}. Can you tell me more?`,
+    `How did you get started with ${safeTopic}, and what has helped you the most?`,
+  ];
 }
