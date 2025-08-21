@@ -100,7 +100,14 @@ export async function messageAI(req, res, next) {
       model: "gemini-2.5-flash",
       history: history,
       config: {
-        systemInstruction: [context, knowledgePrimer].filter(Boolean).join("\n\n"),
+        systemInstruction: [
+          context,
+          moderationInstruction(),
+          characterLimitInstruction(),
+          knowledgePrimer,
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
       },
     });
 
@@ -108,9 +115,12 @@ export async function messageAI(req, res, next) {
 
     // Send message to chat
     const response = await chatInstance.sendMessage({ message });
+    const MAX_REPLY_CHARS = Number(process.env.AI_MAX_CHARS || 500);
+    const rawReply = response.text;
+    const safeReply = sanitizeModelText(rawReply, MAX_REPLY_CHARS);
 
     // After receiving AI response, append to history locally only
-    const updatedHistory = [...(history || []), { role: "model", parts: [{ text: response.text }] }];
+    const updatedHistory = [...(history || []), { role: "model", parts: [{ text: safeReply }] }];
 
     // console.debug("AI response", response);
 
@@ -125,18 +135,61 @@ export async function messageAI(req, res, next) {
         categories,
         history: updatedHistory,
         lastUserText: message,
-        lastAiText: response.text,
+        lastAiText: safeReply,
         mode,
       });
     } catch {}
     if (!Array.isArray(suggestedPrompts) || suggestedPrompts.length === 0) {
-      suggestedPrompts = generateSuggestedPrompts(mode, topic, message, response.text);
+      suggestedPrompts = generateSuggestedPrompts(mode, topic, message, safeReply);
     }
+    // Final sanitize and enforce short length for suggestions
+    suggestedPrompts = (suggestedPrompts || [])
+      .map((p) => sanitizeModelText(String(p || ""), 120))
+      .filter((p) => p && p.length > 0)
+      .slice(0, 2);
 
-    res.json({ reply: response.text, history: updatedHistory, suggestedPrompts });
+    res.json({ reply: safeReply, history: updatedHistory, suggestedPrompts });
   } catch (err) {
     next(err);
   }
+}
+
+function moderationInstruction() {
+  return [
+    "Strict safety policy:",
+    "- Do not produce profanity, slurs, hate speech, harassment, graphic/sexual content, or erotica.",
+    "- If asked to engage in sexual or explicit content or to swear, refuse politely and redirect to appropriate topics.",
+    "- Keep a professional, respectful tone at all times.",
+  ].join("\n");
+}
+
+function characterLimitInstruction() {
+  const maxChars = Number(process.env.AI_MAX_CHARS || 500);
+  return `Keep your entire response under ${maxChars} characters.`;
+}
+
+function sanitizeModelText(text, maxChars) {
+  const t = String(text || "").trim();
+  const clean = enforceModeration(t);
+  const limited = clean.length > maxChars ? clean.slice(0, maxChars) : clean;
+  return limited;
+}
+
+function enforceModeration(text) {
+  const t = String(text || "").toLowerCase();
+  // Simple but strict blocklists for profanity and sexual content
+  const profanity = [
+    /\b(?:f+u+c*k+|s+h*i+t+|b+i+t+c+h+|a+s+s+h*o*l*e+|d+i*c+k+|c+u+n+t+)\b/,
+    /\b(?:mf\b|moth\w*f\w*r|bullshit|piss(?:ed)?|damn)\b/,
+  ];
+  const sexual = [
+    /\b(?:sex|sexual|erotic|porn|pornography|nude|naked|horny|blowjob|handjob|anal|cum|orgasm|vagina|penis|boobs|tits|threesome|kink|fetish)\b/,
+  ];
+  const blocked = [...profanity, ...sexual].some((re) => re.test(t));
+  if (blocked) {
+    return "I can't engage in profanity or sexual content. Let's keep things respectful and appropriate.";
+  }
+  return text;
 }
 
 // Determine whether the user wanted advice or a general conversation
