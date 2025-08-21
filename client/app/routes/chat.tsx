@@ -54,9 +54,9 @@ export default function Chat() {
       setProfile({ name, style, categories, avatarImg });
       setConversationStarted(false);
       setMessages([]);
-      // Auto-send first message (selected path)
+      // Only auto-send if the third selection is not 'text' or 'call'
       const firstMsg = selections[2];
-      if (firstMsg) {
+      if (firstMsg && firstMsg !== "text" && firstMsg !== "call") {
         handleSendWithProfile({ chat: firstMsg }, name, style, categories);
       }
     }
