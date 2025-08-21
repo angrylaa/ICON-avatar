@@ -34,8 +34,16 @@ export default function Chat() {
   });
 
   const generateInitialSuggestions = (style: string, categories: string[]) => {
-    const haystack = [String(style || "").toLowerCase(), ...(Array.isArray(categories) ? categories : []).map((c) => String(c).toLowerCase())].join(" ");
-    const mode = haystack.includes("advice") || haystack.includes("resource") ? "advice" : "conversation";
+    const haystack = [
+      String(style || "").toLowerCase(),
+      ...(Array.isArray(categories) ? categories : []).map((c) =>
+        String(c).toLowerCase()
+      ),
+    ].join(" ");
+    const mode =
+      haystack.includes("advice") || haystack.includes("resource")
+        ? "advice"
+        : "conversation";
     if (mode === "advice") {
       return [
         "What are the most important first steps to make progress?",
@@ -133,7 +141,10 @@ export default function Chat() {
         { role: "model", parts: [{ text: aiRes.reply }] },
       ]);
       // Update suggested prompts if provided
-      if (Array.isArray(aiRes.suggestedPrompts) && aiRes.suggestedPrompts.length > 0) {
+      if (
+        Array.isArray(aiRes.suggestedPrompts) &&
+        aiRes.suggestedPrompts.length > 0
+      ) {
         setSuggestedPrompts(aiRes.suggestedPrompts.slice(0, 2));
       }
     } catch (err) {
@@ -224,7 +235,11 @@ export default function Chat() {
                     className={`text-sm rounded-md px-4 py-3 text-base font-medium ${msg.role === "user" ? "border border-[#947627] max-w-[80%] bg-white text-[#B4933F]" : "border border-[#947627] bg-[#CBB06A] text-white max-w-[80%]"}`}
                   >
                     {msg.parts.map((part, i) => (
-                      <MessageRenderer key={i} text={part.text} isModel={msg.role !== "user"} />
+                      <MessageRenderer
+                        key={i}
+                        text={part.text}
+                        isModel={msg.role !== "user"}
+                      />
                     ))}
                   </div>
                 </div>
@@ -261,7 +276,9 @@ export default function Chat() {
                   disabled={loading || !form.watch("chat").trim()}
                 >
                   {loading ? (
-                    <span className="flex items-center gap-2"><Loader2 className="animate-spin w-4 h-4" /> Sending</span>
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="animate-spin w-4 h-4" /> Sending
+                    </span>
                   ) : (
                     "Send"
                   )}
@@ -275,15 +292,34 @@ export default function Chat() {
   );
 }
 
-function MessageRenderer({ text, isModel }: { text: string; isModel: boolean }) {
+function MessageRenderer({
+  text,
+  isModel,
+}: {
+  text: string;
+  isModel: boolean;
+}) {
   // For model messages, render markdown (supports *, **, lists via GFM)
   if (isModel) {
     return (
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-        strong: ({ node, ...props }) => <strong {...props} />,
-        em: ({ node, ...props }) => <em {...props} />,
-        p: ({ node, ...props }) => <p className="whitespace-pre-wrap" {...props} />,
-      }}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          strong: ({
+            node,
+            ...props
+          }: {
+            node?: unknown;
+            [key: string]: any;
+          }) => <strong {...props} />,
+          em: ({ node, ...props }: { node?: unknown; [key: string]: any }) => (
+            <em {...props} />
+          ),
+          p: ({ node, ...props }: { node?: unknown; [key: string]: any }) => (
+            <p className="whitespace-pre-wrap" {...props} />
+          ),
+        }}
+      >
         {text}
       </ReactMarkdown>
     );
