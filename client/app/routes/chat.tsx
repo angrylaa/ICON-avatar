@@ -51,7 +51,7 @@ export default function Chat() {
       ];
     }
     return [
-      "That's interesting. Can you tell me more?",
+      "Tell me about how you're currently navigating your life?",
       "How did you get started, and what helped you the most?",
     ];
   };
@@ -192,8 +192,8 @@ export default function Chat() {
               </div>
             </div>
             <div className="flex gap-4 mt-4">
-              <button
-                className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2"
+              <Button
+                className="w-[250px] h-fit whitespace-normal bg-[#B4933F] hover:bg-[#947627] rounded-md text-white text-sm font-semibold flex items-center gap-2"
                 onClick={() => {
                   const prompt = suggestedPrompts[0];
                   if (prompt) {
@@ -203,10 +203,14 @@ export default function Chat() {
                 }}
                 disabled={!suggestedPrompts[0] || loading}
               >
-                <span>{suggestedPrompts[0] || ""}</span>
-              </button>
-              <button
-                className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2"
+                <div className="p-2 h-full">
+                  {suggestedPrompts[0] || (
+                    <Loader2 className="animate-spin w-4 h-4" />
+                  )}
+                </div>
+              </Button>
+              <Button
+                className="w-[250px] h-fit whitespace-normal bg-[#B4933F] hover:bg-[#947627] rounded-md text-white text-sm font-semibold flex items-center gap-2"
                 onClick={() => {
                   const prompt = suggestedPrompts[1];
                   if (prompt) {
@@ -216,8 +220,12 @@ export default function Chat() {
                 }}
                 disabled={!suggestedPrompts[1] || loading}
               >
-                <span>{suggestedPrompts[1] || ""}</span>
-              </button>
+                <div className="p-2 h-full">
+                  {suggestedPrompts[1] || (
+                    <Loader2 className="animate-spin w-4 h-4" />
+                  )}
+                </div>
+              </Button>
             </div>
           </div>
           <div className="bg-white rounded-2xl shadow-md flex flex-col justify-between min-h-[340px] p-6">
