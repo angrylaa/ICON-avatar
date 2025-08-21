@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { sendChatMessage } from "../../services/aiChat";
 import type { ChatMessage } from "../../services/aiChat";
 import { Navbar } from "../components/custom/Navbar";
-import { BotMessageSquare } from "lucide-react";
+import { BotMessageSquare, Loader2 } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import {
@@ -13,6 +13,8 @@ import {
 } from "../components/ui/form";
 import { useSanitize } from "../lib/useSanitize";
 import { useForm } from "react-hook-form";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -113,6 +115,8 @@ export default function Chat() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
+    // Clear suggestions while waiting to avoid stale clicks
+    setSuggestedPrompts([]);
     try {
       const aiRes = await sendChatMessage(
         cleanInput,
@@ -220,11 +224,19 @@ export default function Chat() {
                     className={`text-sm rounded-md px-4 py-3 text-base font-medium ${msg.role === "user" ? "border border-[#947627] max-w-[80%] bg-white text-[#B4933F]" : "border border-[#947627] bg-[#CBB06A] text-white max-w-[80%]"}`}
                   >
                     {msg.parts.map((part, i) => (
-                      <span key={i}>{part.text}</span>
+                      <MessageRenderer key={i} text={part.text} isModel={msg.role !== "user"} />
                     ))}
                   </div>
                 </div>
               ))}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="border border-[#947627] bg-[#CBB06A] text-white max-w-[80%] text-sm rounded-md px-4 py-3 text-base font-medium flex items-center gap-2">
+                    <Loader2 className="animate-spin w-4 h-4" />
+                    Thinking...
+                  </div>
+                </div>
+              )}
             </div>
             <Form {...form}>
               <form
@@ -248,7 +260,11 @@ export default function Chat() {
                   className="px-8 py-3 bg-[#CBB06A] text-white rounded-full font-semibold text-base hover:bg-[#B4933F]"
                   disabled={loading || !form.watch("chat").trim()}
                 >
-                  Send
+                  {loading ? (
+                    <span className="flex items-center gap-2"><Loader2 className="animate-spin w-4 h-4" /> Sending</span>
+                  ) : (
+                    "Send"
+                  )}
                 </Button>
               </form>
             </Form>
@@ -257,6 +273,23 @@ export default function Chat() {
       </div>
     </div>
   );
+}
+
+function MessageRenderer({ text, isModel }: { text: string; isModel: boolean }) {
+  // For model messages, render markdown (supports *, **, lists via GFM)
+  if (isModel) {
+    return (
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+        strong: ({ node, ...props }) => <strong {...props} />,
+        em: ({ node, ...props }) => <em {...props} />,
+        p: ({ node, ...props }) => <p className="whitespace-pre-wrap" {...props} />,
+      }}>
+        {text}
+      </ReactMarkdown>
+    );
+  }
+  // For user messages, render plain text
+  return <span>{text}</span>;
 }
 
 /* Add custom scrollbar styles */
