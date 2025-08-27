@@ -14,7 +14,14 @@ export async function sendChatMessage(
   categories: string[],
   style: string,
   newConversation?: boolean
-): Promise<{ reply: string; history: ChatMessage[] }> {
+): Promise<{
+  ok: boolean;
+  version: string;
+  reply: string;
+  history: ChatMessage[];
+  suggestedPrompts?: string[];
+  meta?: { model?: string; maxChars?: number; mode?: string };
+}> {
   const authToken = getAuthToken();
 
   // Debug parameters if needed
