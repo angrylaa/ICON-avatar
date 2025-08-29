@@ -100,7 +100,14 @@ export async function messageAI(req, res, next) {
       model: "gemini-2.5-flash",
       history: history,
       config: {
-        systemInstruction: [context, knowledgePrimer].filter(Boolean).join("\n\n"),
+        systemInstruction: [
+          context,
+          moderationInstruction(),
+          characterLimitInstruction(),
+          knowledgePrimer,
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
       },
     });
 
@@ -108,14 +115,175 @@ export async function messageAI(req, res, next) {
 
     // Send message to chat
     const response = await chatInstance.sendMessage({ message });
+    const MAX_REPLY_CHARS = Number(process.env.AI_MAX_CHARS || 500);
+    const rawReply = response.text;
+    const safeReply = sanitizeModelText(rawReply, MAX_REPLY_CHARS);
 
     // After receiving AI response, append to history locally only
-    const updatedHistory = [...(history || []), { role: "model", parts: [{ text: response.text }] }];
+    const updatedHistory = [...(history || []), { role: "model", parts: [{ text: safeReply }] }];
 
     // console.debug("AI response", response);
 
-    res.json({ reply: response.text, history: updatedHistory });
+    // Generate two recommended prompts using AI based on conversation context
+    const mode = inferConversationMode(style, categories);
+    const topic = extractTopicFromText(message || response.text || "");
+    let suggestedPrompts = [];
+    try {
+      suggestedPrompts = await generateSuggestedPromptsAI({
+        name,
+        style,
+        categories,
+        history: updatedHistory,
+        lastUserText: message,
+        lastAiText: safeReply,
+        mode,
+      });
+    } catch {}
+    if (!Array.isArray(suggestedPrompts) || suggestedPrompts.length === 0) {
+      suggestedPrompts = generateSuggestedPrompts(mode, topic, message, safeReply);
+    }
+    // Final sanitize and enforce short length for suggestions
+    suggestedPrompts = (suggestedPrompts || [])
+      .map((p) => sanitizeModelText(String(p || ""), 120))
+      .filter((p) => p && p.length > 0)
+      .slice(0, 2);
+
+    res.json({
+      ok: true,
+      version: "1.0",
+      reply: safeReply,
+      suggestedPrompts,
+      history: updatedHistory,
+      meta: {
+        model: "gemini-2.5-flash",
+        maxChars: MAX_REPLY_CHARS,
+        mode,
+      },
+    });
   } catch (err) {
     next(err);
   }
+}
+
+function moderationInstruction() {
+  return [
+    "Strict safety policy:",
+    "- Do not produce profanity, slurs, hate speech, harassment, graphic/sexual content, or erotica.",
+    "- If asked to engage in sexual or explicit content or to swear, refuse politely and redirect to appropriate topics.",
+    "- Keep a professional, respectful tone at all times.",
+  ].join("\n");
+}
+
+function characterLimitInstruction() {
+  const maxChars = Number(process.env.AI_MAX_CHARS || 500);
+  return `Keep your entire response under ${maxChars} characters.`;
+}
+
+function sanitizeModelText(text, maxChars) {
+  const t = String(text || "").trim();
+  const clean = enforceModeration(t);
+  const limited = clean.length > maxChars ? clean.slice(0, maxChars) : clean;
+  return limited;
+}
+
+function enforceModeration(text) {
+  const t = String(text || "").toLowerCase();
+  // Simple but strict blocklists for profanity and sexual content
+  const profanity = [
+    /\b(?:f+u+c*k+|s+h*i+t+|b+i+t+c+h+|a+s+s+h*o*l*e+|d+i*c+k+|c+u+n+t+)\b/,
+    /\b(?:mf\b|moth\w*f\w*r|bullshit|piss(?:ed)?|damn)\b/,
+  ];
+  const sexual = [
+    /\b(?:sex|sexual|erotic|porn|pornography|nude|naked|horny|blowjob|handjob|anal|cum|orgasm|vagina|penis|boobs|tits|threesome|kink|fetish)\b/,
+  ];
+  const blocked = [...profanity, ...sexual].some((re) => re.test(t));
+  if (blocked) {
+    return "I can't engage in profanity or sexual content. Let's keep things respectful and appropriate.";
+  }
+  return text;
+}
+
+// Determine whether the user wanted advice or a general conversation
+function inferConversationMode(style, categories) {
+  const haystack = [String(style || "").toLowerCase(), ...(Array.isArray(categories) ? categories : []).map((c) => String(c).toLowerCase())].join(" ");
+  if (haystack.includes("advice") || haystack.includes("resource")) return "advice";
+  if (haystack.includes("conversation") || haystack.includes("chat") || haystack.includes("talk")) return "conversation";
+  return "conversation";
+}
+
+// Very light topic extraction from a text input
+function extractTopicFromText(text) {
+  if (!text || typeof text !== "string") return "this topic";
+  const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+  const words = normalized.split(/\s+/).filter(Boolean);
+  const stop = new Set([
+    "i","im","i'm","am","is","are","was","were","be","been","being","the","a","an","and","or","but","if","then","so","to","for","with","on","in","of","at","by","from","about","as","it","this","that","these","those","you","your","yours","my","mine","me","we","our","ours","they","their","them","he","she","his","her","hers","do","does","did","doing","can","could","should","would","will","won't","dont","don't","didnt","didn't","cant","can't","just","like"
+  ]);
+  const keywords = words.filter((w) => w.length > 2 && !stop.has(w));
+  if (keywords.length === 0) return "this topic";
+  const top = keywords.slice(0, 3).join(" ");
+  return top.trim() || "this topic";
+}
+
+function generateSuggestedPrompts(mode, topic, lastUserText, lastAiText) {
+  const safeTopic = topic || "this topic";
+  if (mode === "advice") {
+    return [
+      `What are the most important first steps to make progress on ${safeTopic}?`,
+      `Do you have 2–3 resources, examples, or templates that can help with ${safeTopic}?`,
+    ];
+  }
+  // conversation mode
+  return [
+    `That's interesting about ${safeTopic}. Can you tell me more?`,
+    `How did you get started with ${safeTopic}, and what has helped you the most?`,
+  ];
+}
+
+async function generateSuggestedPromptsAI({ name, style, categories, history, lastUserText, lastAiText, mode }) {
+  const safeMode = mode === "advice" ? "advice" : "conversation";
+  const instruction = [
+    `You are helping propose the next two user prompts for a chat assistant. The user selected mode: ${safeMode}.`,
+    `Generate two thoughtful, diverse, short follow-up prompts (<120 characters each) that would move the conversation forward.`,
+    `Tailor them to the user's context and the assistant's latest reply. Avoid repeating the user's last question verbatim.`,
+    `Do not ask the same thing twice. If in advice mode, one prompt should be action-oriented and one should ask for resources/examples.`,
+    `Output ONLY a valid JSON array of exactly two strings, no preamble or extra text.`,
+  ].join("\n");
+
+  const suggChat = ai.chats.create({
+    model: "gemini-2.5-flash",
+    history: Array.isArray(history) ? history : [],
+    config: {
+      systemInstruction: instruction,
+    },
+  });
+
+  const suggestionPrompt = [
+    `Last user message: ${String(lastUserText || "").slice(0, 1200)}`,
+    `Last assistant reply: ${String(lastAiText || "").slice(0, 1200)}`,
+    `Style: ${String(style || "").slice(0, 200)}; Categories: ${(Array.isArray(categories) ? categories.join(", ") : "").slice(0, 200)}`,
+    `Return JSON now.`,
+  ].join("\n");
+
+  const gen = await suggChat.sendMessage({ message: suggestionPrompt });
+  const raw = String(gen.text || gen?.response?.text || "").trim();
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed
+        .map((s) => String(s || "").trim())
+        .filter((s) => s.length > 0)
+        .slice(0, 2);
+      if (cleaned.length === 2) return cleaned;
+    }
+  } catch {}
+  // fallback: try to split lines
+  const lines = raw
+    .replace(/^```[\s\S]*?\n|```$/g, "")
+    .split(/\n|\r/)
+    .map((l) => l.replace(/^[-*\d.\s]+/, "").trim())
+    .filter(Boolean)
+    .slice(0, 2);
+  if (lines.length === 2) return lines;
+  return [];
 }

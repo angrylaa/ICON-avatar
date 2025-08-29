@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { sendChatMessage } from "../../services/aiChat";
 import type { ChatMessage } from "../../services/aiChat";
 import { Navbar } from "../components/custom/Navbar";
-import { BotMessageSquare } from "lucide-react";
+import { BotMessageSquare, Loader2 } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import {
@@ -13,11 +13,14 @@ import {
 } from "../components/ui/form";
 import { useSanitize } from "../lib/useSanitize";
 import { useForm } from "react-hook-form";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const form = useForm<{ chat: string }>({ defaultValues: { chat: "" } });
@@ -29,6 +32,29 @@ export default function Chat() {
     categories: ["General Knowledge"],
     avatarImg: "/frame1.png",
   });
+
+  const generateInitialSuggestions = (style: string, categories: string[]) => {
+    const haystack = [
+      String(style || "").toLowerCase(),
+      ...(Array.isArray(categories) ? categories : []).map((c) =>
+        String(c).toLowerCase()
+      ),
+    ].join(" ");
+    const mode =
+      haystack.includes("advice") || haystack.includes("resource")
+        ? "advice"
+        : "conversation";
+    if (mode === "advice") {
+      return [
+        "What are the most important first steps to make progress?",
+        "Do you have 2–3 resources or examples I can use?",
+      ];
+    }
+    return [
+      "Tell me about how you're currently navigating your life?",
+      "How did you get started, and what helped you the most?",
+    ];
+  };
 
   // Track if this is a new conversation
   const [conversationStarted, setConversationStarted] = useState(false);
@@ -54,6 +80,7 @@ export default function Chat() {
       setProfile({ name, style, categories, avatarImg });
       setConversationStarted(false);
       setMessages([]);
+      setSuggestedPrompts(generateInitialSuggestions(style, categories));
       // Only auto-send if the third selection is not 'text' or 'call'
       const firstMsg = selections[2];
       if (firstMsg && firstMsg !== "text" && firstMsg !== "call") {
@@ -96,6 +123,8 @@ export default function Chat() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
+    // Clear suggestions while waiting to avoid stale clicks
+    setSuggestedPrompts([]);
     try {
       const aiRes = await sendChatMessage(
         cleanInput,
@@ -105,12 +134,20 @@ export default function Chat() {
         forcedStyle || profile.style,
         !conversationStarted
       );
+      if (!aiRes.ok) throw new Error("AI response not ok");
       setConversationStarted(true);
 
       setMessages((prev) => [
         ...prev,
         { role: "model", parts: [{ text: aiRes.reply }] },
       ]);
+      // Update suggested prompts if provided
+      if (
+        Array.isArray(aiRes.suggestedPrompts) &&
+        aiRes.suggestedPrompts.length > 0
+      ) {
+        setSuggestedPrompts(aiRes.suggestedPrompts.slice(0, 2));
+      }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -171,7 +208,11 @@ export default function Chat() {
                     className={`text-sm rounded-md px-4 py-3 text-base font-medium ${msg.role === "user" ? "border border-[#947627] max-w-[80%] bg-white text-[#B4933F]" : "border border-[#947627] bg-[#CBB06A] text-white max-w-[80%]"}`}
                   >
                     {msg.parts.map((part, i) => (
-                      <span key={i}>{part.text}</span>
+                      <MessageRenderer
+                        key={i}
+                        text={part.text}
+                        isModel={msg.role !== "user"}
+                      />
                     ))}
                   </div>
                 </div>
@@ -225,7 +266,13 @@ export default function Chat() {
                   className="px-8 py-3 bg-[#CBB06A] text-white rounded-full font-semibold text-base hover:bg-[#B4933F]"
                   disabled={loading || !form.watch("chat").trim()}
                 >
-                  Send
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="animate-spin w-4 h-4" /> Sending
+                    </span>
+                  ) : (
+                    "Send"
+                  )}
                 </Button>
               </form>
             </Form>
@@ -234,6 +281,42 @@ export default function Chat() {
       </div>
     </div>
   );
+}
+
+function MessageRenderer({
+  text,
+  isModel,
+}: {
+  text: string;
+  isModel: boolean;
+}) {
+  // For model messages, render markdown (supports *, **, lists via GFM)
+  if (isModel) {
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          strong: ({
+            node,
+            ...props
+          }: {
+            node?: unknown;
+            [key: string]: any;
+          }) => <strong {...props} />,
+          em: ({ node, ...props }: { node?: unknown; [key: string]: any }) => (
+            <em {...props} />
+          ),
+          p: ({ node, ...props }: { node?: unknown; [key: string]: any }) => (
+            <p className="whitespace-pre-wrap" {...props} />
+          ),
+        }}
+      >
+        {text}
+      </ReactMarkdown>
+    );
+  }
+  // For user messages, render plain text
+  return <span>{text}</span>;
 }
 
 /* Add custom scrollbar styles */
