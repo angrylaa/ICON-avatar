@@ -69,6 +69,54 @@ const fetchContext = (name, style) => {
   throw new Error("Invalid name");
 };
 
+// Canonical list of supported user-facing categories
+const SUPPORTED_CATEGORIES = [
+  "Resources",
+  "General Knowledge",
+  "Advice",
+  "Career",
+  "School",
+];
+
+// Lightweight heuristic classifier to infer categories from a user message
+function inferCategoriesFromMessageText(text) {
+  const inferred = new Set();
+  const t = String(text || "").toLowerCase();
+
+  // Resources intent
+  const resourcesHints = [
+    /\b(resource|resources|link|links|where can i find|examples?|templates?|guide|reading list|reference)\b/,
+    /\bshare (some )?(good )?(material|articles|docs|documentation)\b/,
+  ];
+  if (resourcesHints.some((re) => re.test(t))) inferred.add("Resources");
+
+  // Advice intent
+  const adviceHints = [
+    /\b(advice|advise|tips?|tricks?|suggestions?|recommend|recommendations?)\b/,
+    /\bshould i|how should i|what should i\b/,
+    /\bhow can i (improve|get|land|become|prepare)\b/,
+  ];
+  if (adviceHints.some((re) => re.test(t))) inferred.add("Advice");
+
+  // Career domain
+  const careerHints = [
+    /\b(career|job|jobs|work|resume|cv|cover letter|interview|networking|internship|promotion|manager|offer|salary|negotiation)\b/,
+  ];
+  if (careerHints.some((re) => re.test(t))) inferred.add("Career");
+
+  // School/education domain
+  const schoolHints = [
+    /\b(school|class|course|college|university|uni|degree|major|assignment|homework|exam|midterm|finals|professor|teacher|syllabus)\b/,
+  ];
+  if (schoolHints.some((re) => re.test(t))) inferred.add("School");
+
+  // If we have no specific domain, assume general knowledge
+  if (inferred.size === 0) inferred.add("General Knowledge");
+
+  // Keep only supported labels and return deterministic order
+  return Array.from(inferred).filter((c) => SUPPORTED_CATEGORIES.includes(c));
+}
+
 function buildKnowledgePrimer(knowledge, categories) {
   if (!knowledge || knowledge.length === 0) return "";
   const limited = knowledge.slice(0, 10); // keep primer short
@@ -89,10 +137,15 @@ export async function messageAI(req, res, next) {
     const userId = req.user?.sub;
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
+    // Derive categories from the user's message and merge with any provided
+    const autoCategories = inferCategoriesFromMessageText(message);
+    const provided = Array.isArray(categories) ? categories : [];
+    const finalCategories = Array.from(new Set([...(autoCategories || []), ...provided]));
+
     // Fetch knowledge and context
-    const knowledge = await getKnowledgeForConversation(String(name).toLowerCase(), categories, message);
+    const knowledge = await getKnowledgeForConversation(String(name).toLowerCase(), finalCategories, message);
     const context = fetchContext(String(name).toLowerCase(), style);
-    const knowledgePrimer = buildKnowledgePrimer(knowledge, categories);
+    const knowledgePrimer = buildKnowledgePrimer(knowledge, finalCategories);
 
     // No server-side persistence for history; frontend maintains and sends it each request
 
@@ -125,14 +178,14 @@ export async function messageAI(req, res, next) {
     // console.debug("AI response", response);
 
     // Generate two recommended prompts using AI based on conversation context
-    const mode = inferConversationMode(style, categories);
+    const mode = inferConversationMode(style, finalCategories);
     const topic = extractTopicFromText(message || response.text || "");
     let suggestedPrompts = [];
     try {
       suggestedPrompts = await generateSuggestedPromptsAI({
         name,
         style,
-        categories,
+        categories: finalCategories,
         history: updatedHistory,
         lastUserText: message,
         lastAiText: safeReply,
@@ -158,6 +211,7 @@ export async function messageAI(req, res, next) {
         model: "gemini-2.5-flash",
         maxChars: MAX_REPLY_CHARS,
         mode,
+        categories: finalCategories,
       },
     });
   } catch (err) {
