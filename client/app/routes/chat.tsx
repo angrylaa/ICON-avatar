@@ -106,7 +106,7 @@ export default function Chat() {
         !conversationStarted
       );
       setConversationStarted(true);
-      // Append AI reply to local history
+
       setMessages((prev) => [
         ...prev,
         { role: "model", parts: [{ text: aiRes.reply }] },
@@ -155,14 +155,6 @@ export default function Chat() {
                 </div>
               </div>
             </div>
-            <div className="flex gap-4 mt-4">
-              <button className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2">
-                <span>Lorem ipsum dolorerg ergeregr ergerge</span>
-              </button>
-              <button className="bg-[#CBB06A] rounded-md px-6 py-3 text-white text-sm font-semibold flex items-center gap-2">
-                <span>Lorem ipsum dolorerg ergeregr ergerge</span>
-              </button>
-            </div>
           </div>
           <div className="bg-white rounded-2xl shadow-md flex flex-col justify-between min-h-[340px] p-6">
             <div
@@ -184,6 +176,32 @@ export default function Chat() {
                   </div>
                 </div>
               ))}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="border border-[#947627] bg-[#CBB06A] text-white max-w-[80%] text-sm rounded-md px-4 py-3 text-base font-medium flex items-center gap-2">
+                    <svg
+                      className="animate-spin w-4 h-4 mr-2"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                      />
+                    </svg>
+                    Thinking...
+                  </div>
+                </div>
+              )}
             </div>
             <Form {...form}>
               <form
