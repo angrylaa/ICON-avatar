@@ -20,7 +20,6 @@ export default function Chat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const form = useForm<{ chat: string }>({ defaultValues: { chat: "" } });
@@ -80,7 +79,6 @@ export default function Chat() {
       setProfile({ name, style, categories, avatarImg });
       setConversationStarted(false);
       setMessages([]);
-      setSuggestedPrompts(generateInitialSuggestions(style, categories));
       // Only auto-send if the third selection is not 'text' or 'call'
       const firstMsg = selections[2];
       if (firstMsg && firstMsg !== "text" && firstMsg !== "call") {
@@ -123,8 +121,6 @@ export default function Chat() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
-    // Clear suggestions while waiting to avoid stale clicks
-    setSuggestedPrompts([]);
     try {
       const aiRes = await sendChatMessage(
         cleanInput,
@@ -137,17 +133,11 @@ export default function Chat() {
       if (!aiRes.ok) throw new Error("AI response not ok");
       setConversationStarted(true);
 
+      console.log(aiRes);
       setMessages((prev) => [
         ...prev,
         { role: "model", parts: [{ text: aiRes.reply }] },
       ]);
-      // Update suggested prompts if provided
-      if (
-        Array.isArray(aiRes.suggestedPrompts) &&
-        aiRes.suggestedPrompts.length > 0
-      ) {
-        setSuggestedPrompts(aiRes.suggestedPrompts.slice(0, 2));
-      }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
