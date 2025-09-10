@@ -1,3 +1,8 @@
+/**
+ * User Service
+ * Handles API requests for user authentication, profile management, and admin actions.
+ */
+
 // src/api/user.ts
 export type Role = "user" | "admin";
 
@@ -64,6 +69,7 @@ export async function loginUser(input: {
   });
 }
 
+/** Get the currently logged-in user’s profile */
 export async function getMe(): Promise<{ user: User }> {
   return request<{ user: User }>("/auth/me", { method: "GET" });
 }
@@ -78,6 +84,7 @@ export async function getAllUsers(token?: string): Promise<User[]> {
   return users;
 }
 
+/** Delete a user by ID */
 export async function deleteUserApi(
   id: number,
   token?: string
@@ -85,6 +92,7 @@ export async function deleteUserApi(
   return request<{ ok: true }>(`/users/${id}`, { method: "DELETE" }, token);
 }
 
+/** Create a new user (admin) */
 export async function createUser(input: {
   email: string;
   password: string;
@@ -93,6 +101,7 @@ export async function createUser(input: {
   return registerUser(input);
 }
 
+/** Update an existing user */
 export async function updateUserApi(
   id: number,
   input: { email?: string; password?: string; role?: Role },
@@ -108,6 +117,7 @@ export async function updateUserApi(
   );
 }
 
+/** Logout the current user */
 export async function logoutUser(): Promise<{ ok: true }> {
   return request<{ ok: true }>("/auth/logout", { method: "POST" });
 }

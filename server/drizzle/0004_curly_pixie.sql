@@ -1,0 +1,1 @@
+ALTER TABLE `users` MODIFY COLUMN `id` int unsigned AUTO_INCREMENT NOT NULL;

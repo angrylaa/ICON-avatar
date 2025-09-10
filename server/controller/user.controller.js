@@ -1,3 +1,8 @@
+/**
+ * User Controller for CRUD operations and authentication.
+ * Handles user creation, login, profile updates, and admin actions.
+ */
+
 import { validate, RegisterSchema, LoginSchema } from "../utils/validate.js";
 import {
   registerUser,

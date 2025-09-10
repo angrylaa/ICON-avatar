@@ -1,3 +1,8 @@
+/**
+ * Logout Controller for handling user logout requests.
+ * Invalidates user sessions and tokens as needed.
+ */
+
 export async function logout(req, res, next) {
   try {
     // Remove the auth cookie

@@ -1,10 +1,23 @@
+/**
+ * Conversation Controller for AI Chat Backend
+ * Handles knowledge base filtering, context building, moderation, and AI chat logic for user conversations.
+ * All chat history is managed on the frontend; this controller is stateless per request.
+ */
 import { db } from "../db/db.js";
 import { GoogleGenAI } from "@google/genai";
 // All chat history persistence is handled on the frontend now
 
+// Initialize Gemini AI client
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Utility function for fetching knowledge
+/**
+ * Fetches relevant knowledge base entries for a conversation.
+ * Filters by persona (name), selected categories, and scores relevance to the user's query.
+ * @param {string} name - Persona name (tyler, daniel, jenny)
+ * @param {string[]} categories - Selected categories for filtering
+ * @param {string} queryText - User's current message for relevance scoring
+ * @returns {Promise<Array>} Filtered and scored knowledge entries
+ */
 async function getKnowledgeForConversation(name, categories, queryText) {
   let schema;
   if (name === "tyler") {
@@ -60,6 +73,12 @@ async function getKnowledgeForConversation(name, categories, queryText) {
   return filtered;
 }
 
+/**
+ * Builds a persona context string for the AI system prompt.
+ * @param {string} name - Persona name
+ * @param {string} style - Conversation style/focus
+ * @returns {string} Context string for system prompt
+ */
 const fetchContext = (name, style) => {
   const safeStyle = style || "a helpful conversation";
   if (name === "tyler") {
@@ -83,7 +102,11 @@ const SUPPORTED_CATEGORIES = [
   "School",
 ];
 
-// Lightweight heuristic classifier to infer categories from a user message
+/**
+ * Heuristic classifier to infer categories from a user message.
+ * @param {string} text - User message
+ * @returns {string[]} Array of inferred categories
+ */
 function inferCategoriesFromMessageText(text) {
   const inferred = new Set();
   const t = String(text || "").toLowerCase();
@@ -122,6 +145,12 @@ function inferCategoriesFromMessageText(text) {
   return Array.from(inferred).filter((c) => SUPPORTED_CATEGORIES.includes(c));
 }
 
+/**
+ * Summarizes filtered knowledge for the AI system prompt.
+ * @param {Array} knowledge - Array of knowledge entries
+ * @param {string[]} categories - Selected categories
+ * @returns {string} Knowledge primer for system prompt
+ */
 function buildKnowledgePrimer(knowledge, categories) {
   if (!knowledge || knowledge.length === 0) return "";
   const limited = knowledge.slice(0, 10);
@@ -141,6 +170,14 @@ function buildKnowledgePrimer(knowledge, categories) {
   )}`;
 }
 
+/**
+ * Main API handler for AI chat messages.
+ * - Authenticates user
+ * - Infers categories from message
+ * - Fetches relevant knowledge and persona context
+ * - Builds system prompt and sends message to Gemini AI
+ * - Returns sanitized AI reply and updated history
+ */
 export async function messageAI(req, res, next) {
   try {
     const { name, categories, style, message, history, newConversation } =
@@ -167,8 +204,12 @@ export async function messageAI(req, res, next) {
     const context = fetchContext(String(name).toLowerCase(), style);
     const knowledgePrimer = buildKnowledgePrimer(knowledge, finalCategories);
 
+    // Infer mode before using it
+    const mode = inferConversationMode(style, finalCategories);
+
     // No server-side persistence for history; frontend maintains and sends it each request
 
+    // Create Gemini chat instance with system prompt
     const chatInstance = ai.chats.create({
       model: "gemini-2.5-flash",
       history: history,
@@ -184,8 +225,6 @@ export async function messageAI(req, res, next) {
       },
     });
 
-    // console.debug("Chat bot created.");
-
     // Send message to chat
     const response = await chatInstance.sendMessage({ message });
     const MAX_REPLY_CHARS = Number(process.env.AI_MAX_CHARS || 500);
@@ -197,8 +236,6 @@ export async function messageAI(req, res, next) {
       ...(history || []),
       { role: "model", parts: [{ text: safeReply }] },
     ];
-
-    // console.debug("AI response", response);
 
     res.json({
       ok: true,
@@ -217,6 +254,10 @@ export async function messageAI(req, res, next) {
   }
 }
 
+/**
+ * Returns moderation instructions for the AI system prompt.
+ * Enforces safety, professionalism, and content restrictions.
+ */
 function moderationInstruction() {
   return [
     "Strict safety policy:",
@@ -226,11 +267,22 @@ function moderationInstruction() {
   ].join("\n");
 }
 
+/**
+ * Returns character limit instructions for the AI system prompt.
+ * @returns {string} Character limit instruction
+ */
 function characterLimitInstruction() {
   const maxChars = Number(process.env.AI_MAX_CHARS || 500);
   return `Keep your entire response under ${maxChars} characters.`;
 }
 
+/**
+ * Sanitizes and enforces moderation on AI model text output.
+ * Trims, blocks unsafe content, and enforces character limit.
+ * @param {string} text - AI output text
+ * @param {number} maxChars - Maximum allowed characters
+ * @returns {string} Sanitized text
+ */
 function sanitizeModelText(text, maxChars) {
   const t = String(text || "").trim();
   const clean = enforceModeration(t);
@@ -238,6 +290,11 @@ function sanitizeModelText(text, maxChars) {
   return limited;
 }
 
+/**
+ * Enforces moderation by blocking profanity and sexual content.
+ * @param {string} text - Text to check
+ * @returns {string} Moderated or original text
+ */
 function enforceModeration(text) {
   const t = String(text || "").toLowerCase();
   // Simple but strict blocklists for profanity and sexual content
@@ -255,7 +312,12 @@ function enforceModeration(text) {
   return text;
 }
 
-// Determine whether the user wanted advice or a general conversation
+/**
+ * Infers conversation mode (advice or conversation) from style and categories.
+ * @param {string} style - Conversation style
+ * @param {string[]} categories - Selected categories
+ * @returns {string} Mode string
+ */
 function inferConversationMode(style, categories) {
   const haystack = [
     String(style || "").toLowerCase(),
@@ -272,88 +334,4 @@ function inferConversationMode(style, categories) {
   )
     return "conversation";
   return "conversation";
-}
-
-// Very light topic extraction from a text input
-function extractTopicFromText(text) {
-  if (!text || typeof text !== "string") return "this topic";
-  const normalized = text.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
-  const words = normalized.split(/\s+/).filter(Boolean);
-  const stop = new Set([
-    "i",
-    "im",
-    "i'm",
-    "am",
-    "is",
-    "are",
-    "was",
-    "were",
-    "be",
-    "been",
-    "being",
-    "the",
-    "a",
-    "an",
-    "and",
-    "or",
-    "but",
-    "if",
-    "then",
-    "so",
-    "to",
-    "for",
-    "with",
-    "on",
-    "in",
-    "of",
-    "at",
-    "by",
-    "from",
-    "about",
-    "as",
-    "it",
-    "this",
-    "that",
-    "these",
-    "those",
-    "you",
-    "your",
-    "yours",
-    "my",
-    "mine",
-    "me",
-    "we",
-    "our",
-    "ours",
-    "they",
-    "their",
-    "them",
-    "he",
-    "she",
-    "his",
-    "her",
-    "hers",
-    "do",
-    "does",
-    "did",
-    "doing",
-    "can",
-    "could",
-    "should",
-    "would",
-    "will",
-    "won't",
-    "dont",
-    "don't",
-    "didnt",
-    "didn't",
-    "cant",
-    "can't",
-    "just",
-    "like",
-  ]);
-  const keywords = words.filter((w) => w.length > 2 && !stop.has(w));
-  if (keywords.length === 0) return "this topic";
-  const top = keywords.slice(0, 3).join(" ");
-  return top.trim() || "this topic";
 }

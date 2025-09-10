@@ -163,10 +163,12 @@ export default function Admin() {
   return (
     <>
       <Navbar />
-      <div className="space-y-6 min-h-screen h-[100%] bg-[#FFF6DE] justify-center">
+      <div className="space-y-6 min-h-screen h-[100%] bg-[#FFF6DE] justify-center ">
         <div className="rounded-md mx-auto max-w-300 p-12">
-          <h2 className="mb-3 text-lg font-semibold">Create User</h2>
-          <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
+          <h2 className="mb-3 text-lg font-semibold animate__animated animate__fadeIn">
+            Create User
+          </h2>
+          <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl animate__animated animate__fadeIn">
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -243,14 +245,16 @@ export default function Admin() {
               </form>
             </Form>
           </div>
-          <h2 className="mt-12 mb-3 text-lg font-semibold">View Userbase</h2>
-          <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
+          <h2 className="mt-12 mb-3 text-lg font-semibold animate__animated animate__fadeIn">
+            View Userbase
+          </h2>
+          <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl animate__animated animate__fadeIn">
             <DataTable columns={columns} data={users} />
           </div>
-          <h2 className="mt-12 mb-3 text-lg font-semibold">
+          <h2 className="mt-12 mb-3 text-lg font-semibold animate__animated animate__fadeIn">
             Update Knowledgebase
           </h2>
-          <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl">
+          <div className="border-[#CBB06A] border-2 bg-white p-12 rounded-xl animate__animated animate__fadeIn">
             <Tabs defaultValue="account" className="w-full">
               <TabsList>
                 <TabsTrigger value="tyler">Tyler</TabsTrigger>

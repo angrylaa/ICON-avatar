@@ -7,6 +7,11 @@ import { tylerKnowledge } from "../db/schema/tylerknowledge.js";
 import { jennyKnowledge } from "../db/schema/jennyknowledge.js";
 import { eq } from "drizzle-orm";
 
+/**
+ * Knowledge Controller for CRUD operations on persona knowledge bases.
+ * Handles fetching, creating, updating, and deleting knowledge entries for admin and user access.
+ */
+
 // Helper to get table by name
 function getKnowledgeTable(table) {
   if (table === "danielknowledge") return danielKnowledge;
@@ -15,6 +20,12 @@ function getKnowledgeTable(table) {
   throw new AppError(400, "Invalid knowledge table");
 }
 
+/**
+ * Create a new knowledge entry.
+ * @param {Object} req - The request object containing parameters and body.
+ * @param {Object} res - The response object for sending responses.
+ * @param {Function} next - The next middleware function in the stack.
+ */
 export async function createKnowledge(req, res, next) {
   try {
     const { table } = req.params;
@@ -27,6 +38,12 @@ export async function createKnowledge(req, res, next) {
   }
 }
 
+/**
+ * Update an existing knowledge entry.
+ * @param {Object} req - The request object containing parameters and body.
+ * @param {Object} res - The response object for sending responses.
+ * @param {Function} next - The next middleware function in the stack.
+ */
 export async function updateKnowledge(req, res, next) {
   try {
     const { table, id } = req.params;
@@ -42,6 +59,12 @@ export async function updateKnowledge(req, res, next) {
   }
 }
 
+/**
+ * Delete a knowledge entry.
+ * @param {Object} req - The request object containing parameters.
+ * @param {Object} res - The response object for sending responses.
+ * @param {Function} next - The next middleware function in the stack.
+ */
 export async function deleteKnowledge(req, res, next) {
   try {
     const { table, id } = req.params;
@@ -53,6 +76,12 @@ export async function deleteKnowledge(req, res, next) {
   }
 }
 
+/**
+ * Get knowledge entries for a specific table.
+ * @param {Object} req - The request object containing parameters.
+ * @param {Object} res - The response object for sending responses.
+ * @param {Function} next - The next middleware function in the stack.
+ */
 export async function getKnowledge(req, res, next) {
   try {
     const { table } = req.params;

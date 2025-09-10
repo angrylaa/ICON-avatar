@@ -1,8 +1,20 @@
+/**
+ * Knowledge Service
+ * Handles API requests for fetching, creating, updating, and deleting knowledge base entries.
+ */
+
 import { toast } from "sonner";
 import { getAuthToken } from "~/lib/utils";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+/**
+ * Fetches knowledge entries for a given table.
+ *
+ * @param table - The name of the table to fetch knowledge from.
+ * @param token - Optional auth token, if not provided, will use the token from getAuthToken().
+ * @returns A promise that resolves to the knowledge data.
+ */
 export async function getKnowledge(
   table: string,
   token?: string | null
@@ -32,6 +44,14 @@ export interface KnowledgeData {
   [key: string]: any;
 }
 
+/**
+ * Creates a new knowledge entry in the specified table.
+ *
+ * @param table - The name of the table to create knowledge in.
+ * @param data - The data for the new knowledge entry.
+ * @param token - Optional auth token, if not provided, will use the token from getAuthToken().
+ * @returns A promise that resolves to the created knowledge entry.
+ */
 export async function createKnowledge(
   table: string,
   data: KnowledgeData,
@@ -56,6 +76,14 @@ export async function createKnowledge(
   }
 }
 
+/**
+ * Deletes a knowledge entry from the specified table.
+ *
+ * @param table - The name of the table to delete knowledge from.
+ * @param id - The ID of the knowledge entry to delete.
+ * @param token - Optional auth token, if not provided, will use the token from getAuthToken().
+ * @returns A promise that resolves to the response of the delete operation.
+ */
 export async function deleteKnowledge(
   table: string,
   id: string | number,

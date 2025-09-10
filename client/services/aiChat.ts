@@ -1,3 +1,8 @@
+/**
+ * AI Chat Service
+ * Handles sending chat messages to the backend AI endpoint and managing chat history.
+ */
+
 import { getAuthToken } from "~/lib/utils";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";

@@ -1,0 +1,1 @@
+ALTER TABLE `user_conversations` MODIFY COLUMN `user_id` int unsigned NOT NULL;
