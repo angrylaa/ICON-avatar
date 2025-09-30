@@ -15,7 +15,6 @@ import { AdminLayout } from "../components/admin/AdminLayout";
 import { Overview } from "../components/admin/Overview";
 import { UserManagement } from "../components/admin/UserManagement";
 import { KnowledgeBase } from "../components/admin/KnowledgeBase";
-import { Settings } from "../components/admin/Settings";
 import { Toaster } from "sonner";
 
 export function meta({}: Route.MetaArgs) {
@@ -90,8 +89,6 @@ export default function Admin() {
             setJennyKnowledge={setJennyKnowledge}
           />
         );
-      case "settings":
-        return <Settings />;
       default:
         return (
           <Overview

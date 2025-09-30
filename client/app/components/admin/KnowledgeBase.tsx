@@ -59,23 +59,23 @@ export function KnowledgeBase({
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-[#B4933F] rounded-lg">
+        <div className="p-2 bg-[#D4AF37] rounded-lg">
           <BookOpen className="h-6 w-6 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Knowledge Base</h1>
           <p className="text-gray-600">Manage knowledge entries for different personas</p>
-          <div className="mt-2 text-sm text-[#B4933F] font-medium">
+          <div className="mt-2 text-sm text-[#D4AF37] font-medium">
             ✓ Knowledge Base section is active
           </div>
         </div>
       </div>
 
       {/* Knowledge Base Management */}
-      <div className="bg-white rounded-xl border border-[#CBB06A] shadow-sm">
-        <div className="p-6 border-b border-[#CBB06A]">
+      <div className="bg-white rounded-xl border border-[#E6C547] shadow-sm">
+        <div className="p-6 border-b border-[#E6C547]">
           <div className="flex items-center gap-2">
-            <Database className="h-5 w-5 text-[#B4933F]" />
+            <Database className="h-5 w-5 text-[#D4AF37]" />
             <h2 className="text-lg font-semibold text-gray-900">Knowledge Entries</h2>
           </div>
           <p className="text-sm text-gray-600 mt-1">
@@ -119,7 +119,7 @@ export function KnowledgeBase({
                     }}
                   />
                 </div>
-                <div className="border border-[#CBB06A] rounded-lg overflow-hidden">
+                <div className="border border-[#E6C547] rounded-lg overflow-hidden">
                   <KnowledgeTable
                     columns={knowledgeBaseColumns}
                     data={kb.data}

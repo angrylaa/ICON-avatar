@@ -67,7 +67,7 @@ export function Overview({
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
         <p className="text-gray-600">Welcome to the admin panel. Here's what's happening.</p>
-        <div className="mt-2 text-sm text-[#B4933F] font-medium">
+        <div className="mt-2 text-sm text-[#D4AF37] font-medium">
           ✓ Overview section is active
         </div>
       </div>
@@ -77,7 +77,7 @@ export function Overview({
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white rounded-xl border border-[#CBB06A] shadow-sm p-6">
+            <div key={index} className="bg-white rounded-xl border border-[#E6C547] shadow-sm p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{stat.title}</p>
@@ -109,30 +109,30 @@ export function Overview({
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* User Breakdown */}
-        <div className="bg-white rounded-xl border border-[#CBB06A] shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-[#E6C547] shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">User Distribution</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Admin Users</span>
               <div className="flex items-center gap-2">
-                <div className="w-20 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-[#B4933F] h-2 rounded-full"
-                    style={{ width: `${(adminUsers / users.length) * 100}%` }}
-                  ></div>
-                </div>
+                  <div className="w-20 bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-[#D4AF37] h-2 rounded-full"
+                      style={{ width: `${(adminUsers / users.length) * 100}%` }}
+                    ></div>
+                  </div>
                 <span className="text-sm font-medium text-gray-900">{adminUsers}</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Regular Users</span>
               <div className="flex items-center gap-2">
-                <div className="w-20 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-[#CBB06A] h-2 rounded-full"
-                    style={{ width: `${(regularUsers / users.length) * 100}%` }}
-                  ></div>
-                </div>
+                  <div className="w-20 bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-[#E6C547] h-2 rounded-full"
+                      style={{ width: `${(regularUsers / users.length) * 100}%` }}
+                    ></div>
+                  </div>
                 <span className="text-sm font-medium text-gray-900">{regularUsers}</span>
               </div>
             </div>
@@ -140,7 +140,7 @@ export function Overview({
         </div>
 
         {/* Knowledge Base Breakdown */}
-        <div className="bg-white rounded-xl border border-[#CBB06A] shadow-sm p-6">
+        <div className="bg-white rounded-xl border border-[#E6C547] shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Knowledge Base Distribution</h3>
           <div className="space-y-4">
             {knowledgeBreakdown.map((kb, index) => (
@@ -165,7 +165,7 @@ export function Overview({
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-xl border border-[#CBB06A] shadow-sm p-6">
+      <div className="bg-white rounded-xl border border-[#E6C547] shadow-sm p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
         <div className="space-y-3">
           <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">

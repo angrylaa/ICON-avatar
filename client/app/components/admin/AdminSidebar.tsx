@@ -4,7 +4,6 @@ import { Separator } from "~/components/ui/separator";
 import { 
   Users, 
   BookOpen, 
-  Settings, 
   Home,
   ChevronLeft,
   ChevronRight
@@ -44,22 +43,16 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
       label: "Knowledge Base",
       icon: BookOpen,
       description: "Manage knowledge entries"
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: Settings,
-      description: "System settings"
     }
   ];
 
   return (
-    <div className={`bg-white border-r border-[#CBB06A] transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'} min-h-screen flex flex-col`}>
+    <div className={`bg-white border-r border-[#E6C547] transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'} min-h-screen flex flex-col`}>
       {/* Header */}
-      <div className="p-4 border-b border-[#CBB06A]">
+      <div className="p-4 border-b border-[#E6C547]">
         <div className="flex items-center justify-between">
           {!collapsed && (
-            <h2 className="text-lg font-semibold text-[#B4933F]">Admin Panel</h2>
+            <h2 className="text-lg font-semibold text-[#D4AF37]">Admin Panel</h2>
           )}
           <button
             type="button"
@@ -68,7 +61,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
               e.stopPropagation();
               handleToggleCollapse();
             }}
-            className="p-2 hover:bg-[#FFF6DE] rounded-md transition-colors cursor-pointer"
+            className="p-2 hover:bg-[#F4E4BC] rounded-md transition-colors cursor-pointer"
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
@@ -88,8 +81,8 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                 type="button"
                 className={`w-full flex items-center justify-start gap-3 h-12 rounded-md text-sm font-medium transition-all cursor-pointer ${
                   isActive 
-                    ? "bg-[#B4933F] hover:bg-[#947627] text-white" 
-                    : "hover:bg-[#FFF6DE] text-gray-700 bg-transparent"
+                    ? "bg-[#D4AF37] hover:bg-[#B8941F] text-white" 
+                    : "hover:bg-[#F4E4BC] text-gray-700 bg-transparent"
                 } ${collapsed ? 'px-2' : 'px-4'}`}
                 onClick={(e) => {
                   e.preventDefault();
@@ -112,7 +105,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-[#CBB06A]">
+      <div className="p-4 border-t border-[#E6C547]">
         {!collapsed && (
           <div className="text-xs text-gray-500 text-center">
             Admin Dashboard v1.0

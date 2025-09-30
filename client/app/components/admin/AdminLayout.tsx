@@ -9,7 +9,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children, activeSection, onSectionChange }: AdminLayoutProps) {
   return (
-    <div className="flex min-h-screen bg-[#FFF6DE]">
+    <div className="flex min-h-screen bg-[#F4E4BC]">
       <AdminSidebar 
         activeSection={activeSection} 
         onSectionChange={onSectionChange} 

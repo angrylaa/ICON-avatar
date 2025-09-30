@@ -114,23 +114,23 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-[#B4933F] rounded-lg">
+        <div className="p-2 bg-[#D4AF37] rounded-lg">
           <Users className="h-6 w-6 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
           <p className="text-gray-600">Manage user accounts and permissions</p>
-          <div className="mt-2 text-sm text-[#B4933F] font-medium">
+          <div className="mt-2 text-sm text-[#D4AF37] font-medium">
             ✓ User Management section is active
           </div>
         </div>
       </div>
 
       {/* Create User Section */}
-      <div className="bg-white rounded-xl border border-[#CBB06A] shadow-sm">
-        <div className="p-6 border-b border-[#CBB06A]">
+      <div className="bg-white rounded-xl border border-[#E6C547] shadow-sm">
+        <div className="p-6 border-b border-[#E6C547]">
           <div className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-[#B4933F]" />
+            <UserPlus className="h-5 w-5 text-[#D4AF37]" />
             <h2 className="text-lg font-semibold text-gray-900">Create New User</h2>
           </div>
           <p className="text-sm text-gray-600 mt-1">Add a new user to the system</p>
@@ -149,7 +149,7 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
                       <Input
-                        className="bg-white border-[#CBB06A] focus:border-[#B4933F]"
+                        className="bg-white border-[#E6C547] focus:border-[#D4AF37]"
                         placeholder="user@example.com"
                         {...field}
                       />
@@ -166,7 +166,7 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input
-                        className="bg-white border-[#CBB06A] focus:border-[#B4933F]"
+                        className="bg-white border-[#E6C547] focus:border-[#D4AF37]"
                         type="password"
                         placeholder="••••••••"
                         {...field}
@@ -187,7 +187,7 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="bg-white border-[#CBB06A] focus:border-[#B4933F]">
+                        <SelectTrigger className="bg-white border-[#E6C547] focus:border-[#D4AF37]">
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                       </FormControl>
@@ -203,7 +203,7 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
               <div className="md:col-span-3 flex justify-end">
                 <Button
                   type="submit"
-                  className="bg-[#B4933F] hover:bg-[#947627] text-white px-6"
+                  className="bg-[#D4AF37] hover:bg-[#B8941F] text-white px-6"
                   disabled={loading}
                 >
                   {loading ? "Creating..." : "Create User"}
@@ -215,8 +215,8 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
       </div>
 
       {/* Users Table Section */}
-      <div className="bg-white rounded-xl border border-[#CBB06A] shadow-sm">
-        <div className="p-6 border-b border-[#CBB06A]">
+      <div className="bg-white rounded-xl border border-[#E6C547] shadow-sm">
+        <div className="p-6 border-b border-[#E6C547]">
           <h2 className="text-lg font-semibold text-gray-900">All Users</h2>
           <p className="text-sm text-gray-600 mt-1">
             {users.length} user{users.length !== 1 ? 's' : ''} in the system
