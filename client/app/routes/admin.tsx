@@ -31,6 +31,10 @@ export default function Admin() {
   const [activeSection, setActiveSection] = useState("overview");
   const navigate = useNavigate();
 
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section);
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -105,7 +109,7 @@ export default function Admin() {
       <Navbar />
       <AdminLayout 
         activeSection={activeSection} 
-        onSectionChange={setActiveSection}
+        onSectionChange={handleSectionChange}
       >
         {renderActiveSection()}
       </AdminLayout>

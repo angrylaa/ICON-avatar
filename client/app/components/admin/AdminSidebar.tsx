@@ -18,6 +18,14 @@ interface AdminSidebarProps {
 export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
+  const handleSectionChange = (sectionId: string) => {
+    onSectionChange(sectionId);
+  };
+
+  const handleToggleCollapse = () => {
+    setCollapsed(!collapsed);
+  };
+
   const navigationItems = [
     {
       id: "overview",
@@ -53,14 +61,17 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
           {!collapsed && (
             <h2 className="text-lg font-semibold text-[#B4933F]">Admin Panel</h2>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-2 hover:bg-[#FFF6DE]"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleToggleCollapse();
+            }}
+            className="p-2 hover:bg-[#FFF6DE] rounded-md transition-colors cursor-pointer"
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -72,15 +83,19 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
             const isActive = activeSection === item.id;
             
             return (
-              <Button
+              <button
                 key={item.id}
-                variant={isActive ? "default" : "ghost"}
-                className={`w-full justify-start gap-3 h-12 ${
+                type="button"
+                className={`w-full flex items-center justify-start gap-3 h-12 rounded-md text-sm font-medium transition-all cursor-pointer ${
                   isActive 
                     ? "bg-[#B4933F] hover:bg-[#947627] text-white" 
-                    : "hover:bg-[#FFF6DE] text-gray-700"
+                    : "hover:bg-[#FFF6DE] text-gray-700 bg-transparent"
                 } ${collapsed ? 'px-2' : 'px-4'}`}
-                onClick={() => onSectionChange(item.id)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSectionChange(item.id);
+                }}
                 title={collapsed ? item.label : undefined}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
@@ -90,7 +105,7 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                     <span className="text-xs opacity-70">{item.description}</span>
                   </div>
                 )}
-              </Button>
+              </button>
             );
           })}
         </div>

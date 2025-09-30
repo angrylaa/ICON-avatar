@@ -15,6 +15,9 @@ export function Settings() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
           <p className="text-gray-600">Manage system configuration and preferences</p>
+          <div className="mt-2 text-sm text-[#B4933F] font-medium">
+            ✓ Settings section is active
+          </div>
         </div>
       </div>
 

@@ -65,6 +65,9 @@ export function KnowledgeBase({
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Knowledge Base</h1>
           <p className="text-gray-600">Manage knowledge entries for different personas</p>
+          <div className="mt-2 text-sm text-[#B4933F] font-medium">
+            ✓ Knowledge Base section is active
+          </div>
         </div>
       </div>
 

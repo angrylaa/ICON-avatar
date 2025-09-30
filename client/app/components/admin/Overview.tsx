@@ -67,6 +67,9 @@ export function Overview({
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
         <p className="text-gray-600">Welcome to the admin panel. Here's what's happening.</p>
+        <div className="mt-2 text-sm text-[#B4933F] font-medium">
+          ✓ Overview section is active
+        </div>
       </div>
 
       {/* Stats Grid */}
