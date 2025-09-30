@@ -23,6 +23,12 @@ export default function Questionaire() {
     null,
   ]);
   const [sending, setSending] = useState(false);
+  const stepTitles = ["Persona", "Focus", "Connect"];
+  const stepHeadings = [
+    "Before we chat, which avatar do you resonate the most with?",
+    "Great! What's your primary focus for this conversation?",
+    "Finally, how do you want to connect?",
+  ];
 
   const handleSelect = (stepIdx: number, value: string) => {
     setSelectedOptions((prev) => {
@@ -69,131 +75,149 @@ export default function Questionaire() {
   return (
     <>
       <Navbar />
-      <div className="flex flex-col h-screen bg-[#FFF6DE] justify-center overflow-hidden">
-        {step === 0 && (
-          <>
-            <div className="animate__animated animate__fadeIn mx-auto w-md text-3xl font-bold text-[#B4933F] mb-18">
-              Before we chat, which avatar do you resonate the most with?
+      <div className="min-h-screen bg-[#FFF6DE]">
+        <div className="max-w-6xl mx-auto px-6 py-10 flex items-center justify-center">
+          <div className="flex w-full gap-8">
+            <aside className="hidden md:flex w-64 flex-col gap-2">
+              <div className="text-sm font-semibold text-[#B4933F] mb-1">Steps</div>
+              {stepTitles.map((label, idx) => (
+                <button
+                  key={label}
+                  className={`text-left px-4 py-3 rounded-lg border ${
+                    step === idx
+                      ? "bg-[#B4933F] text-white border-[#B4933F]"
+                      : "bg-white/60 text-[#B4933F] border-[#B4933F]/30"
+                  }`}
+                  onClick={() => {
+                    if (idx <= step) setStep(idx);
+                  }}
+                >
+                  <div className="text-sm font-medium">{label}</div>
+                </button>
+              ))}
+            </aside>
+            <div className="flex-1">
+              <div className="bg-white rounded-2xl shadow p-8">
+                <div className="animate__animated animate__fadeIn text-center text-2xl md:text-3xl font-bold text-[#B4933F] mb-8">
+                  {stepHeadings[step]}
+                </div>
+
+                {step === 0 && (
+                  <div
+                    className={`animate__animated ${
+                      direction === "next"
+                        ? "animate__slideInRight"
+                        : "animate__slideInLeft"
+                    } mx-auto w-4xl grid grid-cols-1 md:grid-cols-3 gap-18 h-32 mb-2`}
+                  >
+                    <div
+                      className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[0] === "Tyler" ? "border-4 border-[#8f5024]" : ""}`}
+                      onClick={() => handleSelect(0, "Tyler")}
+                    >
+                      <div className="text-md text-center text-white font-bold">
+                        Tyler: a graduate student exploring his early career!
+                      </div>
+                    </div>
+                    <div
+                      className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[0] === "Jenny" ? "border-4 border-[#8f5024]" : ""}`}
+                      onClick={() => handleSelect(0, "Jenny")}
+                    >
+                      <div className="text-md text-center text-white font-bold">
+                        Jenny: a mid-career working professional growing her career!
+                      </div>
+                    </div>
+                    <div
+                      className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[0] === "Daniel" ? "border-4 border-[#8f5024]" : ""}`}
+                      onClick={() => handleSelect(0, "Daniel")}
+                    >
+                      <div className="text-md text-center text-white font-bold">
+                        Daniel: a senior professional planning for retirement!
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {step === 1 && (
+                  <div
+                    className={`animate__animated ${
+                      direction === "next"
+                        ? "animate__slideInRight"
+                        : "animate__slideInLeft"
+                    } mx-auto w-xl grid grid-cols-1 md:grid-cols-2 gap-18 h-32 mb-2`}
+                  >
+                    <div
+                      className={`hover:cursor-pointer bg-[url('/frame4.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[1] === "advice" ? "border-4 border-[#8f5024]" : ""}`}
+                      onClick={() => handleSelect(1, "advice")}
+                    >
+                      <div className="text-md text-center text-white font-bold">
+                        I'm looking for advice & resources!
+                      </div>
+                    </div>
+                    <div
+                      className={`hover:cursor-pointer bg-[url('/frame5.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[1] === "conversation" ? "border-4 border-[#8f5024]" : ""}`}
+                      onClick={() => handleSelect(1, "conversation")}
+                    >
+                      <div className="text-md text-center text-white font-bold">
+                        I'm looking for a general conversation!
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {step === 2 && (
+                  <div
+                    className={`animate__animated ${
+                      direction === "next"
+                        ? "animate__slideInRight"
+                        : "animate__slideInLeft"
+                    } mx-auto w-xl grid grid-cols-1 md:grid-cols-2 gap-18 h-32 mb-2`}
+                  >
+                    <div
+                      className={`hover:cursor-pointer bg-[url('/frame2.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[2] === "text" ? "border-4 border-[#8f5024]" : ""}`}
+                      onClick={() => handleSelect(2, "text")}
+                    >
+                      <div className="text-md text-center text-white font-bold">
+                        Let's text!
+                      </div>
+                    </div>
+                    <div
+                      className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[2] === "call" ? "border-4 border-[#8f5024]" : ""}`}
+                      onClick={() => handleSelect(2, "call")}
+                    >
+                      <div className="text-md text-center text-white font-bold">
+                        Let's call!
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-8 flex justify-center gap-2">
+                  <Button
+                    className="w-36 bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
+                    type="submit"
+                    disabled={step === 0}
+                    onClick={() => {
+                      progressStep(step, "back");
+                    }}
+                  >
+                    <MoveLeft></MoveLeft>
+                    Back
+                  </Button>
+                  <Button
+                    className="w-36 bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
+                    type="submit"
+                    onClick={() => {
+                      progressStep(step, "next");
+                    }}
+                    disabled={!selectedOptions[step] || sending}
+                  >
+                    Next
+                    <MoveRight></MoveRight>
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div
-              className={`animate__animated ${
-                direction === "next"
-                  ? "animate__slideInRight"
-                  : "animate__slideInLeft"
-              } mx-auto w-4xl grid grid-cols-3 gap-18 h-32 mb-10`}
-            >
-              <div
-                className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[0] === "Tyler" ? "border-4 border-[#8f5024]" : ""}`}
-                onClick={() => handleSelect(0, "Tyler")}
-              >
-                <div className="text-md text-center text-white font-bold">
-                  Tyler: a graduate student exploring his early career!
-                </div>
-              </div>
-              <div
-                className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[0] === "Jenny" ? "border-4 border-[#8f5024]" : ""}`}
-                onClick={() => handleSelect(0, "Jenny")}
-              >
-                <div className="text-md text-center text-white font-bold">
-                  Jenny: a mid-career working professional growing her career!
-                </div>
-              </div>
-              <div
-                className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[0] === "Daniel" ? "border-4 border-[#8f5024]" : ""}`}
-                onClick={() => handleSelect(0, "Daniel")}
-              >
-                <div className="text-md text-center text-white font-bold">
-                  Daniel: a senior professional planning for retirement!
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-        {step === 1 && (
-          <>
-            <div className="animate__animated animate__fadeIn mx-auto w-md text-3xl font-bold text-[#B4933F] mb-18">
-              Great! What's your primary focus for this conversation?
-            </div>
-            <div
-              className={`animate__animated ${
-                direction === "next"
-                  ? "animate__slideInRight"
-                  : "animate__slideInLeft"
-              } mx-auto w-xl grid grid-cols-2 gap-18 h-32 mb-10`}
-            >
-              <div
-                className={`hover:cursor-pointer bg-[url('/frame4.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[1] === "advice" ? "border-4 border-[#8f5024]" : ""}`}
-                onClick={() => handleSelect(1, "advice")}
-              >
-                <div className="text-md text-center text-white font-bold">
-                  I'm looking for advice & resources!
-                </div>
-              </div>
-              <div
-                className={`hover:cursor-pointer bg-[url('/frame5.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[1] === "conversation" ? "border-4 border-[#8f5024]" : ""}`}
-                onClick={() => handleSelect(1, "conversation")}
-              >
-                <div className="text-md text-center text-white font-bold">
-                  I'm looking for a general conversation!
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-        {step === 2 && (
-          <>
-            <div className="animate__animated animate__fadeIn mx-auto w-md text-3xl font-bold text-[#B4933F] mb-18">
-              Finally, how do you want to connect?
-            </div>
-            <div
-              className={`animate__animated ${
-                direction === "next"
-                  ? "animate__slideInRight"
-                  : "animate__slideInLeft"
-              } mx-auto w-xl grid grid-cols-2 gap-18 h-32 mb-10`}
-            >
-              <div
-                className={`hover:cursor-pointer bg-[url('/frame2.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[2] === "text" ? "border-4 border-[#8f5024]" : ""}`}
-                onClick={() => handleSelect(2, "text")}
-              >
-                <div className="text-md text-center text-white font-bold">
-                  Let's text!
-                </div>
-              </div>
-              <div
-                className={`hover:cursor-pointer bg-[url('/frame1.png')] bg-cover bg-center w-full h-full rounded-xl flex items-center justify-center p-4 ${selectedOptions[2] === "call" ? "border-4 border-[#8f5024]" : ""}`}
-                onClick={() => handleSelect(2, "call")}
-              >
-                <div className="text-md text-center text-white font-bold">
-                  Let's call!
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-        <div className="mx-auto w-48 flex gap-2">
-          <Button
-            className="w-1/2 bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
-            type="submit"
-            disabled={step === 0}
-            onClick={() => {
-              progressStep(step, "back");
-            }}
-          >
-            <MoveLeft></MoveLeft>
-            Back
-          </Button>
-          <Button
-            className="w-1/2 bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
-            type="submit"
-            onClick={() => {
-              progressStep(step, "next");
-            }}
-            disabled={!selectedOptions[step] || sending}
-          >
-            Next
-            <MoveRight></MoveRight>
-          </Button>
+          </div>
         </div>
       </div>
     </>
