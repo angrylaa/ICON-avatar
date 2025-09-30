@@ -69,7 +69,7 @@ export default function Questionaire() {
   return (
     <>
       <Navbar />
-      <div className="flex flex-col h-screen bg-[#FFF6DE] justify-center overflow-hidden">
+      <div className="flex flex-col min-h-screen bg-[#FFF6DE] justify-center overflow-hidden pt-4">
         {step === 0 && (
           <>
             <div className="animate__animated animate__fadeIn mx-auto w-md text-3xl font-bold text-[#B4933F] mb-18">

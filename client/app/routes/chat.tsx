@@ -149,7 +149,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#FFF6DE]">
+    <div className="min-h-screen flex flex-col bg-[#FFF6DE] pt-4">
       <Navbar />
 
       <div className="flex gap-4 items-center justify-center flex-1">
