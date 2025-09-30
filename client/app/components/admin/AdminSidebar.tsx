@@ -1,0 +1,109 @@
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
+import { 
+  Users, 
+  BookOpen, 
+  Settings, 
+  Home,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react";
+
+interface AdminSidebarProps {
+  activeSection: string;
+  onSectionChange: (section: string) => void;
+}
+
+export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  const navigationItems = [
+    {
+      id: "overview",
+      label: "Overview",
+      icon: Home,
+      description: "Dashboard overview"
+    },
+    {
+      id: "users",
+      label: "User Management",
+      icon: Users,
+      description: "Manage users and roles"
+    },
+    {
+      id: "knowledge",
+      label: "Knowledge Base",
+      icon: BookOpen,
+      description: "Manage knowledge entries"
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: Settings,
+      description: "System settings"
+    }
+  ];
+
+  return (
+    <div className={`bg-white border-r border-[#CBB06A] transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'} min-h-screen flex flex-col`}>
+      {/* Header */}
+      <div className="p-4 border-b border-[#CBB06A]">
+        <div className="flex items-center justify-between">
+          {!collapsed && (
+            <h2 className="text-lg font-semibold text-[#B4933F]">Admin Panel</h2>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-2 hover:bg-[#FFF6DE]"
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-4">
+        <div className="space-y-2">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.id;
+            
+            return (
+              <Button
+                key={item.id}
+                variant={isActive ? "default" : "ghost"}
+                className={`w-full justify-start gap-3 h-12 ${
+                  isActive 
+                    ? "bg-[#B4933F] hover:bg-[#947627] text-white" 
+                    : "hover:bg-[#FFF6DE] text-gray-700"
+                } ${collapsed ? 'px-2' : 'px-4'}`}
+                onClick={() => onSectionChange(item.id)}
+                title={collapsed ? item.label : undefined}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && (
+                  <div className="flex flex-col items-start">
+                    <span className="font-medium">{item.label}</span>
+                    <span className="text-xs opacity-70">{item.description}</span>
+                  </div>
+                )}
+              </Button>
+            );
+          })}
+        </div>
+      </nav>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-[#CBB06A]">
+        {!collapsed && (
+          <div className="text-xs text-gray-500 text-center">
+            Admin Dashboard v1.0
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
