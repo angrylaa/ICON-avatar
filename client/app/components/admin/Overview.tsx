@@ -25,26 +25,26 @@ export function Overview({
       title: "Total Users",
       value: users.length,
       icon: Users,
-      color: "bg-yellow-700",
+      color: "bg-[#B8941F]",
     },
     {
       title: "Knowledge Entries",
       value: totalKnowledgeEntries,
       icon: BookOpen,
-      color: "bg-yellow-300",
+      color: "bg-[#B8941F]",
     },
     {
       title: "Admin Users",
       value: adminUsers,
       icon: Activity,
-      color: "bg-yellow-500",
+      color: "bg-[#B8941F]",
     },
   ];
 
   const knowledgeBreakdown = [
-    { name: "Tyler", count: tylerKnowledge.length, color: "bg-yellow-700" },
-    { name: "Daniel", count: danielKnowledge.length, color: "bg-yellow-300" },
-    { name: "Jenny", count: jennyKnowledge.length, color: "bg-yellow-500" },
+    { name: "Tyler", count: tylerKnowledge.length, color: "bg-[#B8941F]" },
+    { name: "Daniel", count: danielKnowledge.length, color: "bg-[#B8941F]" },
+    { name: "Jenny", count: jennyKnowledge.length, color: "bg-[#B8941F]" },
   ];
 
   return (
