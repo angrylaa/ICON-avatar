@@ -43,8 +43,8 @@ export function makeUserColumns(
         <Badge
           className={
             row.original.role === "user"
-              ? "w-1/2 bg-[#CBB06A] py-1"
-              : "w-1/2 bg-[#A79053] py-1"
+              ? "w-1/2 bg-[#E6C547] py-1"
+              : "w-1/2 bg-[#D4AF37] py-1"
           }
         >
           {row.original.role[0].toUpperCase() + row.original.role.slice(1)}
@@ -108,7 +108,7 @@ export function makeUserColumns(
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      className="text-white bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
+                      className="text-white bg-[#D4AF37] hover:bg-[#B8941F] hover:cursor-pointer"
                       onClick={() => onChangeRole(user)}
                     >
                       {user.role === "admin" ? "Set as User" : "Set as Admin"}
@@ -136,7 +136,7 @@ export function makeUserColumns(
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      className="text-white bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
+                      className="text-white bg-[#D4AF37] hover:bg-[#B8941F] hover:cursor-pointer"
                       onClick={() => {
                         const input = document.getElementById(
                           `reset-pw-${user.id}`

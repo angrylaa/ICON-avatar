@@ -63,10 +63,10 @@ export function DataTable<TData, TValue>({
             setFilter(e.target.value);
             setPage(0);
           }}
-          className="w-1/3 border-[#CBB06A]"
+          className="w-1/3 border-[#E6C547]"
         />
       </div>
-      <div className="overflow-hidden rounded-md border border-[#CBB06A]">
+      <div className="overflow-hidden rounded-md border border-[#E6C547]">
         <Table className="w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -119,7 +119,7 @@ export function DataTable<TData, TValue>({
           <Button
             disabled={page === 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
+            className="bg-[#D4AF37] hover:bg-[#B8941F] hover:cursor-pointer"
           >
             Previous
           </Button>
@@ -137,7 +137,7 @@ export function DataTable<TData, TValue>({
             />
           </div>
           <Button
-            className="bg-[#B4933F] hover:bg-[#947627] hover:cursor-pointer"
+            className="bg-[#D4AF37] hover:bg-[#B8941F] hover:cursor-pointer"
             disabled={(page + 1) * pageSize >= filteredData.length}
             onClick={() => setPage((p) => p + 1)}
           >
