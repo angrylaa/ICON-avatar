@@ -1,16 +1,17 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { UserPlus, Users } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
-import { makeUserColumns } from "../admin-table/columns";
-import { DataTable } from "../admin-table/table";
+import { useForm } from "react-hook-form";
 import {
   createUser as createUserApi,
   deleteUserApi,
+  updateUserApi,
   type Role,
   type User,
-  updateUserApi,
 } from "services/user";
-import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
@@ -20,7 +21,6 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -28,8 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { toast } from "sonner";
-import { UserPlus, Users } from "lucide-react";
+import { makeUserColumns } from "../admin-table/columns";
+import { DataTable } from "../admin-table/table";
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
@@ -47,30 +47,36 @@ interface UserManagementProps {
 export function UserManagement({ users, setUsers }: UserManagementProps) {
   const [loading, setLoading] = useState(false);
 
-  const handleDelete = useCallback(async (user: User) => {
-    try {
-      await deleteUserApi(user.id);
-      setUsers((prev) => prev.filter((u) => u.id !== user.id));
-      toast.success("User has been deleted.");
-    } catch (e) {
-      toast.error("Failed to delete user.");
-      console.error(e);
-    }
-  }, [setUsers]);
+  const handleDelete = useCallback(
+    async (user: User) => {
+      try {
+        await deleteUserApi(user.id);
+        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+        toast.success("User has been deleted.");
+      } catch (e) {
+        toast.error("Failed to delete user.");
+        console.error(e);
+      }
+    },
+    [setUsers]
+  );
 
-  const handleChangeRole = useCallback(async (user: User) => {
-    try {
-      const newRole = user.role === "admin" ? "user" : "admin";
-      await updateUserApi(user.id, { role: newRole });
-      setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
-      );
-      toast.success(`User role changed to ${newRole}.`);
-    } catch (e) {
-      toast.error("Failed to change user role.");
-      console.error(e);
-    }
-  }, [setUsers]);
+  const handleChangeRole = useCallback(
+    async (user: User) => {
+      try {
+        const newRole = user.role === "admin" ? "user" : "admin";
+        await updateUserApi(user.id, { role: newRole });
+        setUsers((prev) =>
+          prev.map((u) => (u.id === user.id ? { ...u, role: newRole } : u))
+        );
+        toast.success(`User role changed to ${newRole}.`);
+      } catch (e) {
+        toast.error("Failed to change user role.");
+        console.error(e);
+      }
+    },
+    [setUsers]
+  );
 
   const handleResetPassword = useCallback(
     async (user: User, newPassword: string) => {
@@ -118,11 +124,8 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
           <Users className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-gray-600">Manage user accounts and permissions</p>
-          <div className="mt-2 text-sm text-[#D4AF37] font-medium">
-            ✓ User Management section is active
-          </div>
+          <h1 className="text-2xl font-bold text-[#4f2e1b]">User Management</h1>
+          <p className="text-[#4f2e1b]">Manage user accounts and permissions</p>
         </div>
       </div>
 
@@ -131,9 +134,13 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
         <div className="p-6 border-b border-[#E6C547]">
           <div className="flex items-center gap-2">
             <UserPlus className="h-5 w-5 text-[#D4AF37]" />
-            <h2 className="text-lg font-semibold text-gray-900">Create New User</h2>
+            <h2 className="text-lg font-semibold text-[#4f2e1b]">
+              Create New User
+            </h2>
           </div>
-          <p className="text-sm text-gray-600 mt-1">Add a new user to the system</p>
+          <p className="text-sm text-[#4f2e1b] mt-1">
+            Add a new user to the system
+          </p>
         </div>
         <div className="p-6">
           <Form {...form}>
@@ -217,9 +224,9 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
       {/* Users Table Section */}
       <div className="bg-white rounded-xl border border-[#E6C547] shadow-sm">
         <div className="p-6 border-b border-[#E6C547]">
-          <h2 className="text-lg font-semibold text-gray-900">All Users</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            {users.length} user{users.length !== 1 ? 's' : ''} in the system
+          <h2 className="text-lg font-semibold text-[#4f2e1b]">All Users</h2>
+          <p className="text-sm text-[#4f2e1b] mt-1">
+            {users.length} user{users.length !== 1 ? "s" : ""} in the system
           </p>
         </div>
         <div className="p-6">

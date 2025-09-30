@@ -1,13 +1,13 @@
+import { BookOpen, Database } from "lucide-react";
 import React, { useMemo } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { DataTable as KnowledgeTable } from "~/components/knowledgeBase/table";
+import { getKnowledge } from "services/knowledge";
 import {
   makeKnowledgeColumns,
   type knowledgeBase,
 } from "~/components/knowledgeBase/columns";
+import { DataTable as KnowledgeTable } from "~/components/knowledgeBase/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { CreateKnowledgeEntryDialog } from "../knowledgeBase/table";
-import { getKnowledge } from "services/knowledge";
-import { BookOpen, Database } from "lucide-react";
 
 interface KnowledgeBaseProps {
   danielKnowledge: knowledgeBase[];
@@ -35,7 +35,7 @@ export function KnowledgeBase({
       table: "tylerknowledge",
       data: tylerKnowledge,
       setter: setTylerKnowledge,
-      color: "bg-blue-500",
+      color: "bg-yellow-700",
     },
     {
       id: "daniel",
@@ -43,7 +43,7 @@ export function KnowledgeBase({
       table: "danielknowledge",
       data: danielKnowledge,
       setter: setDanielKnowledge,
-      color: "bg-green-500",
+      color: "bg-yellow-300",
     },
     {
       id: "jenny",
@@ -51,7 +51,7 @@ export function KnowledgeBase({
       table: "jennyknowledge",
       data: jennyKnowledge,
       setter: setJennyKnowledge,
-      color: "bg-purple-500",
+      color: "bg-yellow-500",
     },
   ];
 
@@ -64,10 +64,9 @@ export function KnowledgeBase({
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Knowledge Base</h1>
-          <p className="text-gray-600">Manage knowledge entries for different personas</p>
-          <div className="mt-2 text-sm text-[#D4AF37] font-medium">
-            ✓ Knowledge Base section is active
-          </div>
+          <p className="text-[#4f2e1b]">
+            Manage knowledge entries for different personas
+          </p>
         </div>
       </div>
 
@@ -76,9 +75,11 @@ export function KnowledgeBase({
         <div className="p-6 border-b border-[#E6C547]">
           <div className="flex items-center gap-2">
             <Database className="h-5 w-5 text-[#D4AF37]" />
-            <h2 className="text-lg font-semibold text-gray-900">Knowledge Entries</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Knowledge Entries
+            </h2>
           </div>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-[#4f2e1b] mt-1">
             Manage knowledge entries for each AI persona
           </p>
         </div>
@@ -86,8 +87,8 @@ export function KnowledgeBase({
           <Tabs defaultValue="tyler" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-6">
               {knowledgeBases.map((kb) => (
-                <TabsTrigger 
-                  key={kb.id} 
+                <TabsTrigger
+                  key={kb.id}
                   value={kb.id}
                   className="flex items-center gap-2"
                 >
@@ -99,7 +100,7 @@ export function KnowledgeBase({
                 </TabsTrigger>
               ))}
             </TabsList>
-            
+
             {knowledgeBases.map((kb) => (
               <TabsContent key={kb.id} value={kb.id} className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -107,7 +108,7 @@ export function KnowledgeBase({
                     <h3 className="text-lg font-medium text-gray-900">
                       {kb.name}'s Knowledge Base
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[#4f2e1b]">
                       {kb.data.length} entries available
                     </p>
                   </div>

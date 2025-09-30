@@ -1,20 +1,16 @@
+import { BookOpen, ChevronLeft, ChevronRight, Home, Users } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
-import { 
-  Users, 
-  BookOpen, 
-  Home,
-  ChevronLeft,
-  ChevronRight
-} from "lucide-react";
 
 interface AdminSidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
 }
 
-export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarProps) {
+export function AdminSidebar({
+  activeSection,
+  onSectionChange,
+}: AdminSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   const handleSectionChange = (sectionId: string) => {
@@ -30,41 +26,48 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
       id: "overview",
       label: "Overview",
       icon: Home,
-      description: "Dashboard overview"
+      description: "Dashboard overview",
     },
     {
       id: "users",
       label: "User Management",
       icon: Users,
-      description: "Manage users and roles"
+      description: "Manage users and roles",
     },
     {
       id: "knowledge",
       label: "Knowledge Base",
       icon: BookOpen,
-      description: "Manage knowledge entries"
-    }
+      description: "Manage knowledge entries",
+    },
   ];
 
   return (
-    <div className={`bg-white border-r border-[#E6C547] transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'} min-h-screen flex flex-col`}>
+    <div
+      className={`bg-white border-r border-[#E6C547] ${collapsed ? "w-fit" : "w-64"} min-h-screen flex flex-col`}
+    >
       {/* Header */}
       <div className="p-4 border-b border-[#E6C547]">
         <div className="flex items-center justify-between">
           {!collapsed && (
-            <h2 className="text-lg font-semibold text-[#D4AF37]">Admin Panel</h2>
+            <h2 className="text-lg font-semibold text-[#D4AF37]">
+              Admin Panel
+            </h2>
           )}
-          <button
-            type="button"
+          <Button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               handleToggleCollapse();
             }}
-            className="p-2 hover:bg-[#F4E4BC] rounded-md transition-colors cursor-pointer"
+            className="p-2 hover:bg-[#CBAC46] rounded-md transition-colors cursor-pointer bg-[#B8941F]"
           >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </button>
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
 
@@ -74,16 +77,15 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeSection === item.id;
-            
+
             return (
-              <button
+              <Button
                 key={item.id}
-                type="button"
                 className={`w-full flex items-center justify-start gap-3 h-12 rounded-md text-sm font-medium transition-all cursor-pointer ${
-                  isActive 
-                    ? "bg-[#D4AF37] hover:bg-[#B8941F] text-white" 
+                  isActive
+                    ? "bg-[#B8941F] text-white hover:bg-[#CBAC46]"
                     : "hover:bg-[#F4E4BC] text-gray-700 bg-transparent"
-                } ${collapsed ? 'px-2' : 'px-4'}`}
+                } ${collapsed ? "px-2" : "px-4"}`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -95,10 +97,12 @@ export function AdminSidebar({ activeSection, onSectionChange }: AdminSidebarPro
                 {!collapsed && (
                   <div className="flex flex-col items-start">
                     <span className="font-medium">{item.label}</span>
-                    <span className="text-xs opacity-70">{item.description}</span>
+                    <span className="text-xs opacity-70">
+                      {item.description}
+                    </span>
                   </div>
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>
