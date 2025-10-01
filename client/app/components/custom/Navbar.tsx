@@ -1,8 +1,8 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { logoutUser } from "services/user";
-import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
 import { Toaster } from "sonner";
+import { Button } from "../ui/button";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -63,8 +63,6 @@ export function Navbar() {
           </Button>
         </nav>
       </div>
-      {/* Spacer to prevent content from being hidden behind fixed navbar */}
-      <div className="h-20"></div>
       <Toaster />
     </>
   );

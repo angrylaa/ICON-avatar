@@ -13,7 +13,7 @@ export function AdminLayout({
   onSectionChange,
 }: AdminLayoutProps) {
   return (
-    <div className="flex min-h-screen bg-[#F4E4BC] pt-4">
+    <div className="flex min-h-screen bg-[#F4E4BC]">
       <AdminSidebar
         activeSection={activeSection}
         onSectionChange={onSectionChange}

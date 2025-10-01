@@ -119,7 +119,7 @@ export function UserManagement({ users, setUsers }: UserManagementProps) {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 mt-20">
         <div className="p-2 bg-[#D4AF37] rounded-lg">
           <Users className="h-6 w-6 text-white" />
         </div>

@@ -1,8 +1,9 @@
 import { gsap } from "gsap";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Navbar } from "../components/custom/Navbar";
 import { useRequireAuth } from "../lib/useRequireAuth";
 import type { Route } from "./+types/home";
+// @ts-ignore
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -13,75 +14,9 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Questionaire() {
   useRequireAuth();
-  const [step, setStep] = useState(0);
-  const [direction, setDirection] = useState("next");
-  const [selectedOptions, setSelectedOptions] = useState<(string | null)[]>([
-    null,
-    null,
-    null,
-  ]);
-  const [sending, setSending] = useState(false);
   const boxRefs = useRef<HTMLImageElement[]>([]);
-
-  const addToRefs = (el: HTMLImageElement) => {
-    if (el && !boxRefs.current.includes(el)) {
-      boxRefs.current.push(el);
-    }
-  };
-
-  useEffect(() => {
-    // Example GSAP animation on mount
-    gsap.to(boxRefs.current, {
-      duration: 1,
-      rotation: 360,
-      opacity: 1,
-      delay: 0.5,
-      stagger: 0.1,
-      ease: "sine.out",
-    });
-  }, []);
-
-  const handleSelect = (stepIdx: number, value: string) => {
-    setSelectedOptions((prev) => {
-      const updated = [...prev];
-      updated[stepIdx] = value;
-      return updated;
-    });
-  };
-
-  const progressStep = (step: number, progression: string) => {
-    if (progression === "next") {
-      setDirection("next");
-      if (step < 2) {
-        setStep(step + 1);
-      } else if (step === 2) {
-        // Finalize selections when all 3 are chosen
-        if (selectedOptions.every((opt) => opt)) {
-          try {
-            setSending(true);
-            // Persist for chat route to pick up
-            localStorage.setItem(
-              "questionaireSelections",
-              JSON.stringify(selectedOptions)
-            );
-            // Navigate based on last selection
-            if (selectedOptions[2] === "text") {
-              window.location.href = "/chat";
-            } else if (selectedOptions[2] === "call") {
-              window.location.href = "/call";
-            }
-          } finally {
-            setSending(false);
-          }
-        }
-      }
-    } else if (progression === "back") {
-      setDirection("back");
-      if (step > 0) {
-        setStep(step - 1);
-      }
-    }
-  };
+  const textRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const badges = [
     "badge1.svg",
@@ -91,19 +26,80 @@ export default function Questionaire() {
     "badge5.svg",
   ];
 
+  const addToRefs = (el: HTMLImageElement) => {
+    if (el && !boxRefs.current.includes(el)) {
+      boxRefs.current.push(el);
+    }
+  };
+
+  useEffect(() => {
+    // Animate badges
+    gsap.to(boxRefs.current, {
+      duration: 1,
+      rotation: 360,
+      opacity: 1,
+      delay: 0.5,
+      stagger: 0.1,
+      ease: "sine.out",
+    });
+
+    gsap.to(textRef.current, {
+      duration: 1.5,
+      opacity: 1,
+      delay: 0.2,
+      stagger: 0.1,
+      ease: "sine.out",
+    });
+
+    gsap.to(buttonRef.current, {
+      duration: 1.5,
+      opacity: 1,
+      delay: 0.2,
+      stagger: 0.1,
+      ease: "sine.out",
+    });
+  }, []);
+
+  const getStarted = (index: number) => {
+    gsap.to(boxRefs.current, {
+      duration: 0.5,
+      opacity: 0,
+      y: -100,
+      stagger: {
+        from: index,
+        amount: 1,
+      },
+      ease: "back.in",
+      overwrite: "auto",
+    });
+  };
+
   return (
-    <div className="h-screen">
+    <div>
       <Navbar />
-      <div className="flex bg-[#FFF6DE] h-100% justify-center items-center gap-4">
-        {badges.map((src, index) => (
-          <img
-            key={index}
-            ref={addToRefs}
-            src={src}
-            alt={`badge ${index + 1}`}
-            className="w-42 block dark:hidden opacity-0"
-          />
-        ))}
+      <div className="flex flex-col bg-[#FFF6DE] h-screen justify-center items-center gap-4">
+        <div className="flex gap-2">
+          {badges.map((src, index) => (
+            <img
+              onClick={() => {
+                getStarted(index);
+              }}
+              key={index}
+              ref={addToRefs}
+              src={src}
+              alt={`badge ${index + 1}`}
+              className="w-42 block dark:hidden opacity-0"
+            />
+          ))}
+        </div>
+        <div
+          className="opacity-0 flex flex-col gap-4 justify-center items-center"
+          ref={textRef}
+        >
+          <div className="text-3xl text-[#4f2e1b]">
+            Click on a badge to get started!
+          </div>
+        </div>
       </div>
     </div>
   );
